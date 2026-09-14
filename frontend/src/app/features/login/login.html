@@ -1,0 +1,50 @@
+<div class="login-layout">
+  <aside class="login-story relative hidden overflow-hidden lg:flex lg:flex-col" aria-label="Apo WMS">
+    <wms-brand [inverse]="true" />
+    <div class="mt-15 xl:mt-20">
+      <p class="mb-5 flex items-center gap-3 text-xs font-medium tracking-[.15em] text-blue-200"><span class="h-px w-8 bg-blue-300/50"></span> YOUR WAREHOUSE, CONNECTED</p>
+      <h2 class="text-[36px] leading-[1.65] font-semibold xl:text-[42px]">ทุกโปรเจกต์เป็นระบบ<br /><span class="text-blue-200">ทุกขั้นตอนชัดเจน</span></h2>
+      <p class="mt-4 max-w-sm leading-7 text-slate-300">พื้นที่ทำงานเดียวสำหรับทีมคลังของคุณ<br />เริ่มต้นวันทำงานด้วยโปรเจกต์ที่ใช่</p>
+    </div>
+    <div class="warehouse-art my-auto py-5"><img src="warehouse.svg" alt="" width="580" height="330" class="w-full" /></div>
+    <div class="flex items-center gap-3 border-t border-white/15 pt-6 text-sm text-slate-300"><wms-icon name="layers" /><span>หนึ่งพื้นที่ทำงาน เชื่อมทุกโปรเจกต์</span></div>
+  </aside>
+  <div class="flex min-h-dvh flex-col bg-white">
+    <header class="flex items-center justify-between gap-4 px-6 py-6 sm:px-10 lg:justify-end">
+      <div class="lg:hidden"><wms-brand /></div><span class="demo-badge"><span></span>โหมดสาธิต</span>
+    </header>
+    <main id="main-content" tabindex="-1" class="mx-auto flex w-full max-w-[500px] flex-1 flex-col justify-center px-6 py-8 sm:px-10 lg:pb-16">
+      <span class="mb-6 flex h-13 w-13 items-center justify-center rounded-2xl border border-blue-100 bg-blue-50 text-primary"><wms-icon name="lock" /></span>
+      <p class="eyebrow mb-3">WELCOME BACK</p>
+      <h1 class="text-[30px] font-semibold leading-normal tracking-tight sm:text-[34px]">ยินดีต้อนรับกลับ</h1>
+      <p class="mt-2 text-muted">เข้าสู่ระบบเพื่อเลือกโปรเจกต์และเริ่มทำงาน</p>
+      <form class="mt-9 space-y-5" [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="session.pending()">
+        <div>
+          <label for="username" class="field-label">ชื่อผู้ใช้</label>
+          <div class="input-wrap" [class.field-error]="invalid('username')"><wms-icon name="user" /><input id="username" formControlName="username" placeholder="กรอกชื่อผู้ใช้" autocomplete="username" autocapitalize="none" spellcheck="false" [readOnly]="session.pending()" [attr.aria-invalid]="invalid('username')" [attr.aria-describedby]="invalid('username') ? 'username-error' : null" /></div>
+          @if (invalid('username')) { <p id="username-error" class="field-message">กรุณากรอกชื่อผู้ใช้</p> }
+        </div>
+        <div>
+          <label for="password" class="field-label">รหัสผ่าน</label>
+          <div class="input-wrap" [class.field-error]="invalid('password')">
+            <wms-icon name="lock" /><input id="password" formControlName="password" [type]="showPassword() ? 'text' : 'password'" placeholder="กรอกรหัสผ่าน" autocomplete="current-password" [readOnly]="session.pending()" [attr.aria-invalid]="invalid('password')" [attr.aria-describedby]="invalid('password') ? 'password-error' : null" />
+            <button type="button" class="password-toggle" [attr.aria-label]="showPassword() ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'" [attr.aria-pressed]="showPassword()" (click)="showPassword.set(!showPassword())"><wms-icon [name]="showPassword() ? 'eyeOff' : 'eye'" /></button>
+          </div>
+          @if (invalid('password')) { <p id="password-error" class="field-message">กรุณากรอกรหัสผ่าน</p> }
+        </div>
+        @if (error()) { <div role="alert" class="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-800"><wms-icon name="info" /><span>{{ error() }}</span></div> }
+        <button type="submit" class="primary-button mt-2 w-full" [disabled]="session.pending()">
+          @if (session.pending()) { <span class="spinner" aria-hidden="true"></span><span>กำลังเข้าสู่ระบบ…</span> }
+          @else { <span>เข้าสู่ระบบ</span><wms-icon name="arrow" /> }
+        </button>
+      </form>
+      <section class="demo-panel mt-7" aria-label="บัญชีสาธิต">
+        <div class="flex items-center gap-2 text-sm font-semibold"><wms-icon name="info" /><span>ลองใช้งานด้วยบัญชีสาธิต</span></div>
+        <p class="mt-2 text-sm leading-6 text-muted">ชื่อผู้ใช้ <code>demo</code><span class="mx-2 text-slate-300">/</span> รหัสผ่าน <code>demo123</code></p>
+        <button type="button" class="mt-2 flex min-h-11 items-center gap-2 text-sm font-semibold text-primary hover:text-primary-dark" (click)="fillDemo()" [disabled]="session.pending()">กรอกบัญชีสาธิต <wms-icon name="arrow" /></button>
+      </section>
+      <p class="mt-5 flex items-start justify-center gap-2 text-center text-xs leading-5 text-muted"><wms-icon name="shield" /><span>ต้นแบบสำหรับทดลองใช้งาน · ใช้ข้อมูลจำลองเท่านั้น</span></p>
+    </main>
+    <footer class="px-6 py-6 text-center text-xs text-muted">Apo WMS <span class="mx-2 text-slate-300">·</span> ระบบจัดการคลังสินค้า</footer>
+  </div>
+</div>
