@@ -14,7 +14,7 @@ import { Icon } from '../../shared/icon';
           <p class="eyebrow mb-3">CURRENT PROJECT</p>
           <div class="flex items-center gap-3"><span class="avatar font-display">{{ session.selected()?.name?.slice(0, 1) }}</span><div><p class="font-display text-lg font-bold">{{ session.selected()?.name }}</p><p class="text-xs text-muted">บริษัทตัวอย่าง</p></div></div>
           <button type="button" class="secondary-button mt-5 w-full text-sm" (click)="switchProject()"><wms-icon name="switch" />เปลี่ยนโปรเจกต์</button>
-          <div class="mt-8 hidden items-center gap-3 rounded-lg bg-blue-50 px-4 py-3 font-medium text-primary lg:flex" aria-current="page"><wms-icon name="grid" />พื้นที่ทำงาน</div>
+          <div class="mt-8 hidden items-center gap-3 rounded-lg bg-brand-50 px-4 py-3 font-medium text-primary lg:flex" aria-current="page"><wms-icon name="grid" />พื้นที่ทำงาน</div>
         </aside>
         <main id="main-content" tabindex="-1" class="min-w-0 px-5 py-9 sm:px-10 sm:py-12">
           <p class="eyebrow mb-3">PROJECT / {{ session.selected()?.code }}</p>
