@@ -1,0 +1,13 @@
+.tools/
+node_modules/
+.angular/
+dist/
+test-results/
+playwright-report/
+*.log
+exp/
+.agents/
+.env
+.env.*.local
+.local/
+.superpowers/
