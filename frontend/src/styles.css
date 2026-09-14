@@ -11,16 +11,16 @@
 @theme {
   --font-sans: 'Noto Sans Thai', sans-serif;
   --font-display: 'Manrope', 'Noto Sans Thai', sans-serif;
-  --color-primary: #7341c8;
-  --color-primary-dark: #5726a5;
-  --color-brand-50: #f7f2ff;
-  --color-brand-100: #ede2fb;
-  --color-brand-200: #d9c2f4;
-  --color-brand-300: #c19be9;
-  --color-ink: #29223b;
-  --color-muted: #6e657d;
-  --color-line: #e7e1ee;
-  --color-canvas: #faf8fd;
+  --color-primary: #6d4aff;
+  --color-primary-dark: #5233cc;
+  --color-brand-50: #f3f1ff;
+  --color-brand-100: #e7e2ff;
+  --color-brand-200: #c8bdff;
+  --color-brand-300: #aa97ff;
+  --color-ink: #1b2038;
+  --color-muted: #667085;
+  --color-line: #e3e5ef;
+  --color-canvas: #f7f8fc;
 }
 @layer base {
   body { @apply m-0 bg-canvas font-sans text-base leading-relaxed text-ink antialiased; }
@@ -28,10 +28,10 @@
   button, a { touch-action: manipulation; }
   button { cursor: pointer; }
   button:disabled { cursor: wait; opacity: .65; }
-  :focus-visible { outline: 3px solid #9b6cdd; outline-offset: 4px; }
+  :focus-visible { outline: 3px solid #8866ed; outline-offset: 4px; }
   main:focus { outline: none; }
   input { min-width: 0; }
-  input::placeholder { color: #80738f; }
+  input::placeholder { color: #778095; }
   code { @apply rounded bg-white px-1.5 py-0.5 font-display text-xs font-semibold text-ink; }
 }
 @layer components {
@@ -46,7 +46,7 @@
   .input-wrap input:focus-visible { outline: none; }
   .field-error { @apply border-red-500; }
   .field-message { @apply mt-1.5 text-sm text-red-700; }
-  .primary-button { @apply inline-flex min-h-13 items-center justify-center gap-3 rounded-xl bg-primary px-5 py-3 font-medium text-white shadow-[0_4px_10px_#7341c820] transition-colors hover:bg-primary-dark; }
+  .primary-button { @apply inline-flex min-h-13 items-center justify-center gap-3 rounded-xl bg-primary px-5 py-3 font-medium text-white shadow-[0_4px_10px_#6d4aff20] transition-colors hover:bg-primary-dark; }
   .secondary-button { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 font-medium text-ink transition-colors hover:border-primary hover:bg-brand-50; }
   .icon-button { @apply flex h-11 w-11 items-center justify-center rounded-xl text-muted hover:bg-slate-100 hover:text-ink; }
   .password-toggle { @apply -mr-3 flex h-11 w-11 items-center justify-center rounded-lg hover:bg-slate-100 hover:text-ink; }
@@ -55,7 +55,7 @@
   .step-done { @apply flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-primary; }
   .step-done svg { width: 16px; height: 16px; }
   .step-active { @apply flex h-7 w-7 items-center justify-center rounded-full bg-primary font-display text-xs text-white; }
-  .project-card { @apply rounded-2xl border border-line bg-white p-6 transition-[border-color,box-shadow] hover:border-brand-300 hover:shadow-[0_8px_32px_#3922550a]; }
+  .project-card { @apply rounded-2xl border border-line bg-white p-6 transition-[border-color,box-shadow] hover:border-brand-300 hover:shadow-[0_8px_32px_#27245512]; }
   .project-monogram { @apply flex h-16 w-16 items-center justify-center rounded-2xl border border-brand-100 bg-brand-50 text-3xl font-bold text-primary; }
   .project-card[data-accent='violet'] .project-monogram { @apply border-violet-100 bg-violet-50 text-violet-700; }
   .project-card[data-accent='teal'] .project-monogram { @apply border-teal-100 bg-teal-50 text-teal-700; }
@@ -64,11 +64,11 @@
 }
 /* Custom geometry for the illustration panel; Tailwind handles UI layout. */
 .login-layout { display: grid; grid-template-columns: 1fr; min-height: 100dvh; }
-.login-story { background: #2c1948; padding: 44px 52px 34px; color: white; }
-.login-story::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(#ffffff03 1px, transparent 1px), linear-gradient(90deg, #ffffff03 1px, transparent 1px); background-size: 44px 44px; pointer-events: none; }
+.login-story { background: radial-gradient(ellipse at 55% 70%, #6d4aff26, transparent 65%), #15132e; padding: 44px 52px 34px; color: white; }
+.login-story::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(#a99aff09 1px, transparent 1px), linear-gradient(90deg, #a99aff09 1px, transparent 1px); background-size: 44px 44px; pointer-events: none; }
 .login-story > * { position: relative; }
 .warehouse-art { max-width: 600px; }
-.workspace-illustration { background: #f0eafa; }
+.workspace-illustration { background: #eeeffa; }
 .spinner { width: 18px; height: 18px; border: 2px solid #ffffff55; border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (min-width: 1024px) { .login-layout { grid-template-columns: 47% 53%; } }
