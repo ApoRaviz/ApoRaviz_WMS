@@ -15,10 +15,12 @@ export class App {
     document.getElementById('main-content')?.focus();
   }
   constructor() {
-    inject(Router).events.pipe(takeUntilDestroyed()).subscribe(event => {
-      if (event instanceof NavigationEnd) {
-        setTimeout(() => document.getElementById('main-content')?.focus(), 0);
-      }
-    });
+    inject(Router)
+      .events.pipe(takeUntilDestroyed())
+      .subscribe((event) => {
+        if (event instanceof NavigationEnd) {
+          setTimeout(() => document.getElementById('main-content')?.focus(), 0);
+        }
+      });
   }
 }

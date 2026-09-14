@@ -1,14 +1,34 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { DemoSession } from './demo-session';
+import { SessionService } from './session';
 
-// Demo navigation only. The eventual backend must enforce real authorization.
-export const requireSession: CanActivateFn = () =>
-  inject(DemoSession).user() ? true : inject(Router).parseUrl('/login');
-export const requireProject: CanActivateFn = () => {
-  const session = inject(DemoSession);
+async function restored() {
+  const session = inject(SessionService);
   const router = inject(Router);
-  return !session.user() ? router.parseUrl('/login') : session.selected() ? true : router.parseUrl('/projects');
+  await session.restore();
+  return { session, router };
+}
+
+export const requireSession: CanActivateFn = async () => {
+  const { session, router } = await restored();
+  return session.user() ? true : router.parseUrl('/login');
 };
-export const requireGuest: CanActivateFn = () =>
-  inject(DemoSession).user() ? inject(Router).parseUrl('/projects') : true;
+
+export const requirePasswordChanged: CanActivateFn = async () => {
+  const { session, router } = await restored();
+  if (!session.user()) return router.parseUrl('/login');
+  return session.user()!.mustChangePassword ? router.parseUrl('/password') : true;
+};
+
+export const requireAdmin: CanActivateFn = async () => {
+  const { session, router } = await restored();
+  if (!session.user()) return router.parseUrl('/login');
+  if (session.user()!.mustChangePassword) return router.parseUrl('/password');
+  return session.user()!.isAdmin ? true : router.parseUrl('/projects');
+};
+
+export const requireGuest: CanActivateFn = async () => {
+  const { session, router } = await restored();
+  if (!session.user()) return true;
+  return router.parseUrl(session.user()!.mustChangePassword ? '/password' : '/projects');
+};

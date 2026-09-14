@@ -1,30 +1,83 @@
 <div class="flex min-h-dvh flex-col bg-canvas">
   <wms-topbar />
-  <main id="main-content" tabindex="-1" class="mx-auto w-full max-w-[1120px] flex-1 px-5 py-10 sm:px-10 sm:py-15">
-    <div class="mb-9 flex flex-wrap items-center gap-3 text-sm"><span class="flex items-center gap-2 text-muted"><span class="step-done"><wms-icon name="check" /></span>เข้าสู่ระบบ</span><span class="h-px w-9 bg-slate-300"></span><span class="flex items-center gap-2 font-medium text-primary"><span class="step-active">2</span>เลือกโปรเจกต์</span></div>
-    <div class="flex flex-wrap items-end justify-between gap-6"><div><p class="eyebrow mb-3">YOUR WORKSPACE</p><h1 class="text-[30px] font-semibold leading-normal tracking-tight sm:text-[36px]">เลือกโปรเจกต์ของคุณ</h1><p class="mt-2 text-muted">เลือกพื้นที่ทำงานที่คุณต้องการเข้าใช้งานในวันนี้</p></div><span class="rounded-full border border-line bg-white px-4 py-2 text-sm text-muted">{{ session.projects().length }} โปรเจกต์ที่เข้าถึงได้</span></div>
-    <div class="mt-9 flex flex-col justify-between gap-4 border-y border-line py-5 sm:flex-row sm:items-center">
-      <div class="flex items-center gap-3"><span class="flex h-11 w-11 items-center justify-center rounded-xl border border-line bg-white text-muted"><wms-icon name="building" /></span><div><p class="text-xs text-muted">CLIENT</p><p class="font-medium">บริษัทตัวอย่าง</p></div></div>
-      @if (session.projects().length) { <div class="input-wrap w-full bg-white sm:max-w-[330px]"><wms-icon name="search" /><input type="search" aria-label="ค้นหาโปรเจกต์" placeholder="ค้นหาชื่อหรือรหัสโปรเจกต์" [value]="query()" (input)="updateQuery($event)" /></div> }
+  <main
+    id="main-content"
+    tabindex="-1"
+    class="mx-auto w-full max-w-[1120px] flex-1 px-5 py-10 sm:px-10 sm:py-15"
+  >
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <div>
+        <p class="eyebrow mb-3">YOUR WORKSPACE</p>
+        <h1 class="text-[30px] font-semibold leading-normal tracking-tight sm:text-[36px]">
+          เลือกโปรเจกต์ของคุณ
+        </h1>
+        <p class="mt-2 text-muted">เลือกพื้นที่ทำงานที่ต้องการเข้าใช้งานในวันนี้</p>
+      </div>
+      <span class="rounded-full border border-line bg-white px-4 py-2 text-sm text-muted"
+        >{{ session.projects().length }} โปรเจกต์ที่เข้าถึงได้</span
+      >
     </div>
-    <div class="mt-7 grid gap-5 md:grid-cols-3">
-      @for (project of filtered(); track project.id) {
-        <article class="project-card group" [attr.data-accent]="project.accent">
-          <div class="flex items-start justify-between"><span class="project-monogram font-display">{{ project.name.slice(0, 1) }}</span><span class="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800"><span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>พร้อมใช้งาน</span></div>
-          <div class="mt-6"><span class="font-display text-xs font-semibold tracking-[.16em] text-muted">PROJECT / {{ project.code }}</span><h2 class="font-display mt-1 text-[30px] font-bold">{{ project.name }}</h2><p class="mt-2 text-sm leading-6 text-muted">{{ project.description }}</p></div>
-          <div class="mt-7 flex items-center gap-2 border-t border-line pt-4 text-xs text-muted"><wms-icon name="building" />{{ project.client }}</div>
-          <button type="button" class="project-enter mt-5" [attr.aria-label]="'เข้าโปรเจกต์ ' + project.name" (click)="enter(project.id)"><span>เข้าโปรเจกต์</span><wms-icon name="arrow" /></button>
-        </article>
-      } @empty {
-        <section class="col-span-full flex flex-col items-center rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-16 text-center">
-          <span class="mb-5 flex h-15 w-15 items-center justify-center rounded-2xl bg-slate-100 text-muted"><wms-icon [name]="session.projects().length ? 'search' : 'grid'" /></span>
-          @if (session.projects().length) { <h2 class="text-xl font-semibold">ไม่พบโปรเจกต์</h2><p class="mt-2 text-muted">ลองค้นหาด้วยชื่อหรือรหัสอื่น</p><button type="button" class="secondary-button mt-5" (click)="query.set('')">ล้างการค้นหา</button> }
-          @else { <h2 class="text-xl font-semibold">ยังไม่มีโปรเจกต์ที่ได้รับสิทธิ์</h2><p class="mt-2 max-w-md leading-7 text-muted">ติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์เข้าใช้งานโปรเจกต์<br />หรือลองออกจากระบบแล้วใช้บัญชี demo</p> }
-        </section>
-      }
-    </div>
-    <p role="status" class="sr-only">แสดง {{ filtered().length }} จาก {{ session.projects().length }} โปรเจกต์</p>
-    <div class="mt-8 flex items-start gap-3 text-sm leading-6 text-muted"><wms-icon name="shield" /><p>แสดงเฉพาะโปรเจกต์ที่คุณได้รับสิทธิ์<br class="sm:hidden" /> <span class="hidden sm:inline">·</span> คุณสามารถเปลี่ยนโปรเจกต์ได้ภายหลัง</p></div>
+    @if (session.projects().length) {
+      <div class="mt-9 input-wrap max-w-sm bg-white">
+        <wms-icon name="search" /><input
+          type="search"
+          aria-label="ค้นหาโปรเจกต์"
+          placeholder="ค้นหาชื่อหรือรหัสโปรเจกต์"
+          [value]="query()"
+          (input)="updateQuery($event)"
+        />
+      </div>
+      <div class="mt-7 grid gap-5 md:grid-cols-3">
+        @for (project of filtered(); track project.id) {
+          <article class="project-card" [attr.data-accent]="project.accent">
+            <div class="flex items-start justify-between gap-3">
+              <span class="project-monogram font-display">{{ project.name.slice(0, 1) }}</span
+              ><span class="role-badge">{{ project.roleName }}</span>
+            </div>
+            <div class="mt-6">
+              <span class="font-display text-xs font-semibold tracking-[.16em] text-muted"
+                >PROJECT / {{ project.code }}</span
+              >
+              <h2 class="font-display mt-1 text-[30px] font-bold">{{ project.name }}</h2>
+              <p class="mt-2 text-sm leading-6 text-muted">{{ project.description }}</p>
+            </div>
+            <div class="mt-7 border-t border-line pt-4 text-xs text-muted">
+              {{ project.client }}
+            </div>
+            <button
+              type="button"
+              class="project-enter mt-5"
+              [attr.aria-label]="'เข้าโปรเจกต์ ' + project.name"
+              (click)="enter(project.id)"
+            >
+              <span>เข้าสู่พื้นที่ทำงาน</span><wms-icon name="arrow" />
+            </button>
+          </article>
+        } @empty {
+          <section class="empty-state md:col-span-3">
+            <h2 class="text-xl font-semibold">ไม่พบโปรเจกต์</h2>
+            <p class="mt-2 text-muted">ลองใช้ชื่อหรือรหัสโปรเจกต์อื่น</p>
+            <button type="button" class="secondary-button mt-5" (click)="clearQuery()">
+              ล้างการค้นหา
+            </button>
+          </section>
+        }
+      </div>
+    } @else {
+      <section class="empty-state">
+        <span
+          class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-primary"
+          ><wms-icon name="building"
+        /></span>
+        <h2 class="mt-4 text-xl font-semibold">ยังไม่มีโปรเจกต์ที่ได้รับสิทธิ์</h2>
+        <p class="mt-2 text-muted">ติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์เข้าใช้งานโปรเจกต์</p>
+        @if (session.user()?.isAdmin) {
+          <a routerLink="/admin" class="secondary-button mt-5">จัดการระบบ</a>
+        }
+      </section>
+    }
+    <p role="status" class="sr-only">
+      แสดง {{ filtered().length }} จาก {{ session.projects().length }} โปรเจกต์
+    </p>
   </main>
-  <footer class="mx-auto flex w-full max-w-[1120px] flex-wrap justify-between gap-2 px-5 py-7 text-xs text-muted sm:px-10"><span>Apo WMS · ระบบจัดการคลังสินค้า</span><span>ต้นแบบทดลองใช้งาน · ข้อมูลจำลอง</span></footer>
 </div>

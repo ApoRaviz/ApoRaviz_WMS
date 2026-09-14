@@ -57,3 +57,6 @@ Stack ที่ติดตั้ง: Angular framework 22.1.0, Angular CLI/buil
 ## Skills ที่ใช้
 
 Brainstorming: ขอบเขตได้รับการตกลงในบทสนทนาก่อน implementation; Karpathy: แยกของใหม่ จำกัด scope และตรวจพฤติกรรมจริง; UI UX Pro Max: ใช้ Quick Reference และข้อมูล Angular สำหรับ label, focus, contrast, touch target และโครงสร้าง component. ไม่ได้รัน Python design-system generator เพราะยังไม่พบ Python runtime ที่ใช้งานได้ในเครื่อง
+# เอกสารประวัติต้นแบบ
+
+ขั้นตอนและบัญชีสาธิตด้านล่างเป็นประวัติ UI รุ่นก่อน Module 1 ให้ใช้ [คู่มือทดสอบ Module 1](MODULE1-TEST.md) สำหรับระบบปัจจุบัน

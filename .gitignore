@@ -7,3 +7,7 @@ playwright-report/
 *.log
 exp/
 .agents/
+.env
+.env.*.local
+.local/
+.superpowers/

@@ -16,3 +16,6 @@ Demo credentials: demo / demo123. A second account empty / demo123 demonstrates 
 
 ## Acceptance
 Build passes. Test login errors, valid login, search, project selection/switch, logout, unauthenticated routes, no assignments. Review desktop and handheld-width layout. Stop for user review after this prototype.
+# ประวัติการออกแบบ UI
+
+แบบบัญชีและสิทธิ์ฉบับใช้งานจริงอยู่ใน [Module 1 access design](2026-09-14-module1-access-design.md) และแทนที่หัวข้อ access model ที่ยังเป็นข้อเสนอในเอกสารนี้
