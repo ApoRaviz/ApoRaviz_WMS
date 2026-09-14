@@ -97,7 +97,7 @@ const emptyDraft = (): UserDraft => ({
                 <wms-icon name="close" />
               </button>
             </div>
-            <form class="mt-6 space-y-6" (ngSubmit)="saveUser()" #userForm="ngForm">
+            <form class="mt-6 space-y-6" (ngSubmit)="userForm.valid && saveUser()" #userForm="ngForm">
               <div class="grid gap-5 sm:grid-cols-2">
                 <div>
                   <label for="admin-username" class="field-label">ชื่อผู้ใช้</label>
@@ -106,12 +106,22 @@ const emptyDraft = (): UserDraft => ({
                       id="admin-username"
                       name="username"
                       [(ngModel)]="draft().username"
+                      #usernameControl="ngModel"
                       required
-                      pattern="[A-Za-z0-9._-]{3,50}"
+                      [pattern]="usernamePattern"
+                      maxlength="50"
+                      autocapitalize="none"
+                      spellcheck="false"
+                      [attr.aria-invalid]="usernameControl.invalid && (usernameControl.dirty || usernameControl.touched)"
+                      [attr.aria-describedby]="usernameControl.invalid && (usernameControl.dirty || usernameControl.touched) ? 'username-hint username-error' : 'username-hint'"
                       [readOnly]="!!draft().id"
                       autocomplete="off"
                     />
                   </div>
+                  <p id="username-hint" class="mt-2 text-xs text-muted">ใช้ภาษาอังกฤษ ตัวเลข หรือ . _ - จำนวน 3–50 ตัวอักษร</p>
+                  @if (usernameControl.invalid && (usernameControl.dirty || usernameControl.touched)) {
+                    <p id="username-error" class="field-message">Username ต้องเป็นภาษาอังกฤษ ตัวเลข หรือ . _ - จำนวน 3–50 ตัวอักษรเท่านั้น</p>
+                  }
                 </div>
                 <div>
                   <label for="admin-name" class="field-label">ชื่อที่แสดง</label>
@@ -311,6 +321,7 @@ const emptyDraft = (): UserDraft => ({
   </div>`,
 })
 export class Admin {
+  readonly usernamePattern = '[A-Za-z0-9._\\-]{3,50}';
   readonly session = inject(SessionService);
   readonly tab = signal<Tab>('users');
   readonly users = signal<ManagedUser[]>([]);
@@ -382,6 +393,10 @@ export class Admin {
   }
   async saveUser(): Promise<void> {
     this.clearMessages();
+    if (!/^[A-Za-z0-9._-]{3,50}$/.test(this.draft().username)) {
+      this.error.set('Username ต้องเป็นภาษาอังกฤษ ตัวเลข หรือ . _ - จำนวน 3–50 ตัวอักษรเท่านั้น');
+      return;
+    }
     this.saving.set(true);
     const value = this.draft();
     try {

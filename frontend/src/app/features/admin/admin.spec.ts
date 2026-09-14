@@ -52,4 +52,21 @@ describe('Admin membership editor', () => {
     expect(fixture.componentInstance.membershipSummary({ ...managedUser, isAdmin: true, memberships: [] }))
       .toBe('ทุกโปรเจกต์ · ผู้ดูแลบริษัท');
   });
+
+  it('rejects Thai usernames before submitting and explains the allowed format', async () => {
+    fixture.componentInstance.startCreate();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const input = fixture.nativeElement.querySelector('#admin-username') as HTMLInputElement;
+    input.value = 'ผู้ใช้งาน';
+    input.dispatchEvent(new Event('input'));
+    input.dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    expect(fixture.nativeElement.querySelector('#username-error').textContent).toContain('ภาษาอังกฤษ');
+    await fixture.componentInstance.saveUser();
+    expect(fixture.componentInstance.error()).toContain('ภาษาอังกฤษ');
+    expect(fixture.componentInstance.saving()).toBe(false);
+  });
 });
