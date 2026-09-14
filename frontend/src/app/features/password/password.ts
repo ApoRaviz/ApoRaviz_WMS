@@ -54,10 +54,16 @@ import { Topbar } from '../../shared/topbar';
               <div class="input-wrap">
                 <wms-icon name="lock" /><input
                   id="currentPassword"
-                  type="password"
+                  [type]="showCurrentPassword() ? 'text' : 'password'"
                   formControlName="currentPassword"
                   autocomplete="current-password"
                 />
+                <button type="button" class="password-toggle"
+                  [attr.aria-label]="showCurrentPassword() ? 'ซ่อนรหัสผ่านปัจจุบัน' : 'แสดงรหัสผ่านปัจจุบัน'"
+                  [attr.aria-pressed]="showCurrentPassword()"
+                  (click)="showCurrentPassword.set(!showCurrentPassword())">
+                  <wms-icon [name]="showCurrentPassword() ? 'eyeOff' : 'eye'" />
+                </button>
               </div>
             </div>
             <div>
@@ -65,11 +71,17 @@ import { Topbar } from '../../shared/topbar';
               <div class="input-wrap">
                 <wms-icon name="lock" /><input
                   id="newPassword"
-                  type="password"
+                  [type]="showNewPassword() ? 'text' : 'password'"
                   formControlName="newPassword"
                   autocomplete="new-password"
                   aria-describedby="password-hint"
                 />
+                <button type="button" class="password-toggle"
+                  [attr.aria-label]="showNewPassword() ? 'ซ่อนรหัสผ่านใหม่' : 'แสดงรหัสผ่านใหม่'"
+                  [attr.aria-pressed]="showNewPassword()"
+                  (click)="showNewPassword.set(!showNewPassword())">
+                  <wms-icon [name]="showNewPassword() ? 'eyeOff' : 'eye'" />
+                </button>
               </div>
               <p id="password-hint" class="mt-2 text-xs text-muted">
                 ใช้ 12–128 ตัวอักษร และต้องต่างจากรหัสผ่านปัจจุบัน
@@ -80,10 +92,16 @@ import { Topbar } from '../../shared/topbar';
               <div class="input-wrap">
                 <wms-icon name="lock" /><input
                   id="confirmPassword"
-                  type="password"
+                  [type]="showConfirmPassword() ? 'text' : 'password'"
                   formControlName="confirmPassword"
                   autocomplete="new-password"
                 />
+                <button type="button" class="password-toggle"
+                  [attr.aria-label]="showConfirmPassword() ? 'ซ่อนยืนยันรหัสผ่านใหม่' : 'แสดงยืนยันรหัสผ่านใหม่'"
+                  [attr.aria-pressed]="showConfirmPassword()"
+                  (click)="showConfirmPassword.set(!showConfirmPassword())">
+                  <wms-icon [name]="showConfirmPassword() ? 'eyeOff' : 'eye'" />
+                </button>
               </div>
             </div>
             @if (error()) {
@@ -115,6 +133,9 @@ export class Password {
   private readonly router = inject(Router);
   readonly error = signal('');
   readonly success = signal('');
+  readonly showCurrentPassword = signal(false);
+  readonly showNewPassword = signal(false);
+  readonly showConfirmPassword = signal(false);
   readonly forced = () => !!this.session.user()?.mustChangePassword;
   readonly form = new FormGroup({
     currentPassword: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -144,6 +165,9 @@ export class Password {
     try {
       await this.session.changePassword(value.currentPassword, value.newPassword);
       this.form.reset();
+      this.showCurrentPassword.set(false);
+      this.showNewPassword.set(false);
+      this.showConfirmPassword.set(false);
       if (wasForced) await this.router.navigateByUrl('/projects');
       else this.success.set('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว');
     } catch (error) {
