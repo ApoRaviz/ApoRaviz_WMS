@@ -303,6 +303,42 @@ test("numeric references retain constraints, delete actions and supporting index
   }
 });
 
+test("busy tables cause a bounded migration failure with the legacy schema intact", async () => {
+  const db = await legacyFixture();
+  const blocker = await db.pool.connect();
+  try {
+    await blocker.query("BEGIN");
+    await blocker.query(
+      "SELECT id FROM users WHERE id='legacy-user' FOR UPDATE",
+    );
+    await expect(db.initialize()).rejects.toMatchObject({ code: "55P03" });
+    expect(
+      (await db.query("SELECT version FROM schema_migrations WHERE version=3"))
+        .rowCount,
+    ).toBe(0);
+    expect(
+      (
+        await db.query(
+          "SELECT user_id FROM sessions WHERE token_hash='existing-token-hash'",
+        )
+      ).rows[0].user_id,
+    ).toBe("legacy-user");
+    await blocker.query("ROLLBACK");
+    await db.initialize();
+    expect(
+      (await db.query("SELECT version FROM schema_migrations WHERE version=3"))
+        .rowCount,
+    ).toBe(1);
+    expect(
+      (await new SessionsRepository(db).current("existing-token-hash"))?.id,
+    ).toBe("legacy-user");
+  } finally {
+    await blocker.query("ROLLBACK");
+    blocker.release();
+    await db.close();
+  }
+}, 15_000);
+
 test("DB allocates concurrent identities and repositories preserve IDs above Number precision", async () => {
   const db = await legacyFixture();
   try {

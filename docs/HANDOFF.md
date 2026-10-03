@@ -1,5 +1,15 @@
 # สถานะล่าสุด — 2026-10-03
 
+## Internal IDs — bigint พร้อม public ID เดิม
+
+- Branch ปัจจุบัน `refactor/internal-bigint-ids` จาก `eda16b9`; implementation `ca5e6bb` เปลี่ยน PK ภายใน Users/Projects/Clients/Warehouses และ FK ทั้ง 10 จุดเป็น bigint identity โดยเก็บ ID เดิมใน `public_id` unique; รายการใหม่ให้ PostgreSQL 18 สร้าง public ID แบบ UUIDv7
+- API/URL/สมาชิก/session/audit JSON และรหัสธุรกิจเดิมคงเดิม; bigint อยู่ใน SQL หรือ string ไม่แปลงเป็น JavaScript Number; role/permission natural keys และ token hashes ใช้รูปแบบเดิม
+- Backend 32/32 + build, Frontend 26/26 + build, source boundaries และ Edge 11/11 ผ่าน ใช้ schema ทดสอบแยก; ครอบคลุม populated migration, rollback/retry หลัง FK ขวางและ lock timeout, ID เกิน Number precision และ concurrent upgrade ของ schema เดิม
+- Review ไม่พบ Critical/Important; เพิ่ม regression ของ lock timeout ตามข้อเสนอ Minor แล้ว การ initialize schema ใหม่พร้อมกันครั้งแรกยังไม่ใช่กรณีที่รับรอง ให้เริ่ม instance แรกเพียงตัวเดียว
+- Benchmark ข้อมูลสังเคราะห์ 100,000 parent / 400,000 links: index รวมประมาณ 108.45 → 39.59 MiB (รวม public-ID index แล้ว) ไม่ใช่ผล throughput จริง และ heap เดิมไม่รับประกันว่าจะเล็กลงทันที
+- **ยังไม่ migrate ฐานจริงและไม่หยุด Backend/Frontend ของเจ้าของ พอร์ต 3000/4200**: migration `003_internal_bigint_ids.sql` ใช้ schema ที่ Backend เก่าใช้ต่อไม่ได้ ต้องหยุด writers ทั้งหมด สำรองและตรวจ restore ก่อนเริ่ม Backend ใหม่เพียงตัวเดียว ทำตาม [QA และ deployment/rollback runbook](qa/2026-10-03-internal-bigint-ids.md) แทนขั้นตอน restart อย่างเดียวในประวัติด้านล่าง
+- เก็บ branch/commit ในเครื่องให้เจ้าของทดสอบ ยังไม่ merge/push; `frontend/angular.json` เป็นการแก้ของผู้ใช้และไม่รวม commit; บันทึกหลักการเลือก ID และ migration verification ใน AGENTS.md แล้ว
+
 ## Project Setup — ทำตามแบบที่ผู้ใช้อนุมัติ
 
 - Branch `feat/project-setup` จาก `a181cff`; implementation `61943c3` ทำครบหน้า Admin list/สร้างฉบับร่าง และหน้าตั้งค่า 5 หมวด ข้อมูลทั่วไป/คลัง/กฎ/สมาชิก/ประวัติ

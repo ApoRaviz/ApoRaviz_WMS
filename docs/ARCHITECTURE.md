@@ -13,7 +13,15 @@ Module 1 provides authentication, company administration and project access. Pro
 - `projects/setup` owns the Setup controller, typed DTOs, business service and repositories. `ReferenceService` prepares central Clients/Warehouses. `MembershipAuditService` is exported through `ProjectsDataModule` so the existing Users editor records the same Project audit/version inside its transaction.
 - Setup revalidates the actor and project role within the transaction, acquires the shared administrative advisory lock before row locks, checks the submitted version, and commits the section change with before/after audit and real actor identity. Client/rules lock after first use; internal usage flags protect warehouse removal/status changes until operational modules provide transaction writers.
 
-### Transaction and authentication invariants
+### Entity identity and relational storage
+
+Users, Projects, Clients and Warehouses use database-generated bigint identity primary keys. Their ten entity foreign keys use bigint, with indexes for both composite-link directions and reference/revocation queries. Each entity retains a unique text `public_id`: existing IDs remain unchanged and new ones are generated as UUIDv7 by PostgreSQL 18. Business codes remain separate. Role/permission natural keys and session token hashes are unchanged.
+
+Repositories accept public IDs, resolve numeric keys within SQL, join on numeric columns and explicitly project `public_id AS id` into API-facing models. Any internal bigint returned by PostgreSQL remains a string; never convert it to JavaScript Number. Audit snapshots keep public identifiers, while audit relational columns use bigint. This adds a public-ID lookup index but reduces repeated key width in relations without breaking API URLs, sessions or memberships.
+
+Migration 003 backfills and validates references, recreates constraints/indexes and commits with its migration marker. Unexpected dependencies or its five-second lock timeout roll back the upgrade. It requires coordinated maintenance because old binaries are incompatible with the new columns. See the [backup, restore, deployment and rollback runbook](qa/2026-10-03-internal-bigint-ids.md). Existing-schema concurrent upgrade is tested; initialize a brand-new database with one instance.
+
+### Transaction and authentication behavior
 
 The service opens each transaction and passes its same `PoolClient` to every participating repository. Login locks and rechecks the verified user's active status/hash before issuing a session. Password change locks the session and user, verifies the current credential, revokes old sessions and issues a replacement. Password reset locks the target before updating/revoking. User updates retain the advisory administrator lock, locked actor revalidation and last-active-administrator protection. Login throttle reservations remain synchronous before the first await.
 
@@ -47,6 +55,6 @@ The existing restore coalescing, storage cleanup, pending/error behavior, failed
 
 The source-boundary script detects common layer violations; it supplements architectural review and does not prove all dependency rules. Backend tests use temporary schemas. Browser tests require Angular on localhost:4200 and an unused API port 3000, and create/clean an isolated schema with ephemeral accounts. Never stop a user's running API just to run browser tests.
 
-Rebuild/restart the backend to load Project Setup and apply additive migration 002. It backfills central Client references and preserves existing Projects/accounts/memberships. New Projects are drafts; existing Projects remain active. No credential reset is required. See [Project Setup QA and migration notes](qa/2026-10-03-project-setup.md).
+Migration 002 adds Project Setup and backfills central Client references. Migration 003 converts internal keys while preserving public identities and credentials. Before restarting this release against an existing database, stop old writers and verify a backup/restore using the [current migration runbook](qa/2026-10-03-internal-bigint-ids.md). New Projects are drafts; existing Projects remain active. See [Project Setup QA](qa/2026-10-03-project-setup.md) for feature behavior.
 
 Framework references: [Nest modules](https://docs.nestjs.com/modules), [Nest guards](https://docs.nestjs.com/guards), [Angular style guide](https://angular.dev/style-guide).

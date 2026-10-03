@@ -15,6 +15,8 @@ Read `docs/HANDOFF.md` before resuming work. The owner's current instructions de
 - Define typed DTOs and validate untrusted input at the API boundary. Keep persistence entities, public response models and request DTOs distinct where their contracts differ. Never expose password hashes or session tokens in public models.
 - Use guards for authentication/authorization entry checks. Enforce project scope and relevant business permissions on the server; retain transactional checks when state can change concurrently.
 - Keep bootstrap/configuration in main/app wiring. No catch-all AccessService, controller, utility file or service that contains unrelated features.
+- For centrally allocated generated entity identities, use bigint identity internal keys and bigint foreign keys. Keep stable public IDs and human-facing business codes separate. Preserve API identities when migrating existing data; never coerce database bigint values into JavaScript Number. Natural role/permission keys and security token hashes are intentional exceptions. Document any different choice with workload evidence.
+- Schema changes must include populated-data migration/rollback tests, validated constraints, access-path indexes and deployment/restore notes. Performance claims require measurements with stated workloads and limits, not assumptions from a data type alone.
 
 ## Frontend
 
