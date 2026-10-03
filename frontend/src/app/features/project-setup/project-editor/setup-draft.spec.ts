@@ -1,5 +1,5 @@
 import { sectionInput } from './setup-draft';
-import type { SetupDraft } from './setup.model';
+import type { SetupDraft } from '../setup.model';
 describe('Project setup section payloads', () => {
   const draft: SetupDraft = {
     name: 'Apo',

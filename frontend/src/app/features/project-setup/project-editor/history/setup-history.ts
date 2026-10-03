@@ -1,6 +1,6 @@
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { SetupAudit, SetupDetail, modeLabels, roleLabels, statusLabels } from './setup.model';
+import { SetupAudit, SetupDetail, modeLabels, roleLabels, statusLabels } from '../../setup.model';
 @Component({
   selector: 'wms-setup-history',
   imports: [DatePipe],

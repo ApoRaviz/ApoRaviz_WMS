@@ -1,11 +1,11 @@
-import { SetupDialog } from './setup-dialog';
+import { SetupDialog } from '../setup-dialog/setup-dialog';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Topbar } from '../../core/layout/topbar';
-import { apiErrorMessage } from '../../core/http/api-error';
-import { SetupApi } from './setup-api.service';
-import { CreateProjectInput, ProjectSummary, ReferenceCatalog, statusLabels } from './setup.model';
+import { Topbar } from '../../../core/layout/topbar';
+import { apiErrorMessage } from '../../../core/http/api-error';
+import { SetupApi } from '../setup-api.service';
+import { CreateProjectInput, ProjectSummary, ReferenceCatalog, statusLabels } from '../setup.model';
 @Component({
   selector: 'wms-project-admin-list',
   imports: [SetupDialog, FormsModule, RouterLink, Topbar],

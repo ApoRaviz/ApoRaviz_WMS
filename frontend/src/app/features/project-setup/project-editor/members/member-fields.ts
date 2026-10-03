@@ -1,8 +1,8 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { roleLabels } from './setup.model';
-import type { SetupDetail, SetupDraft } from './setup.model';
-import type { RoleId } from '../admin/roles/role.model';
+import { roleLabels } from '../../setup.model';
+import type { SetupDetail, SetupDraft } from '../../setup.model';
+import type { RoleId } from '../../../admin/roles/role.model';
 @Component({
   selector: 'wms-setup-members',
   imports: [FormsModule],

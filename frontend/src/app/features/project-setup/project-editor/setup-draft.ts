@@ -1,4 +1,4 @@
-import type { SectionInput, SetupDetail, SetupDraft, WritableSection } from './setup.model';
+import type { SectionInput, SetupDetail, SetupDraft, WritableSection } from '../setup.model';
 export function makeDraft(d: SetupDetail): SetupDraft {
   const p = d.project;
   return {

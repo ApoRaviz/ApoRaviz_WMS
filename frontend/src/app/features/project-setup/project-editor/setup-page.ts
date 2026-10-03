@@ -1,13 +1,13 @@
-import { SetupDialog } from './setup-dialog';
+import { SetupDialog } from '../setup-dialog/setup-dialog';
 import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Topbar } from '../../core/layout/topbar';
-import { SessionService } from '../../core/auth/session.service';
-import { apiErrorMessage } from '../../core/http/api-error';
-import { SetupApi } from './setup-api.service';
+import { Topbar } from '../../../core/layout/topbar';
+import { SessionService } from '../../../core/auth/session.service';
+import { apiErrorMessage } from '../../../core/http/api-error';
+import { SetupApi } from '../setup-api.service';
 import { makeDraft, sectionInput } from './setup-draft';
 import {
   SetupDetail,
@@ -15,12 +15,12 @@ import {
   SetupSection,
   WritableSection,
   statusLabels,
-} from './setup.model';
-import { GeneralFields } from './general-fields';
-import { WarehouseFields } from './warehouse-fields';
-import { RuleFields } from './rule-fields';
-import { MemberFields } from './member-fields';
-import { SetupHistory } from './setup-history';
+} from '../setup.model';
+import { GeneralFields } from './general/general-fields';
+import { WarehouseFields } from './warehouses/warehouse-fields';
+import { RuleFields } from './rules/rule-fields';
+import { MemberFields } from './members/member-fields';
+import { SetupHistory } from './history/setup-history';
 @Component({
   selector: 'wms-project-setup',
   imports: [

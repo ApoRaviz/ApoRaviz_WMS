@@ -13,21 +13,21 @@ export const routes: Routes = [
     title: 'จัดการโปรเจกต์ · Apo WMS',
     canActivate: [requireAdmin],
     loadComponent: () =>
-      import('./features/project-setup/project-list').then((m) => m.ProjectAdminList),
+      import('./features/project-setup/project-list/project-list').then((m) => m.ProjectAdminList),
   },
   {
     path: 'admin/project-reference-data',
     title: 'ข้อมูลกลาง · Apo WMS',
     canActivate: [requireAdmin],
     loadComponent: () =>
-      import('./features/project-setup/reference-page').then((m) => m.ReferencePage),
+      import('./features/project-setup/reference-data/reference-page').then((m) => m.ReferencePage),
   },
   {
     path: 'projects/:projectId/settings',
     title: 'ตั้งค่าโปรเจกต์ · Apo WMS',
     canActivate: [requireProjectSetup],
     canDeactivate: [confirmSetupLeave],
-    loadComponent: () => import('./features/project-setup/setup-page').then((m) => m.SetupPage),
+    loadComponent: () => import('./features/project-setup/project-editor/setup-page').then((m) => m.SetupPage),
   },
   {
     path: 'login',

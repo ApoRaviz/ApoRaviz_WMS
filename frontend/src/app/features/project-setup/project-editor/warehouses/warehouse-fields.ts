@@ -1,6 +1,6 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { SetupDetail, SetupDraft } from './setup.model';
+import type { SetupDetail, SetupDraft } from '../../setup.model';
 @Component({
   selector: 'wms-setup-warehouses',
   imports: [FormsModule],

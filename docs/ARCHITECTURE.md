@@ -36,6 +36,8 @@ Cookies retain their name, HttpOnly/SameSite/Secure/path/expiry behavior. A comm
 - `features/admin/roles`: role/permission models and RolesService.
 - `features/projects`: project/workspace models and ProjectsService.
 - `features/project-setup`: typed Setup API/model, Admin list/reference page, project-scoped guard, full-page editor and focused section components. The page owns form/dirty/dialog state; HTTP stays in `SetupApi`. Backend checks all permissions independently. A Manager can enter own Setup without entering global Admin.
+  - `project-list/` and `reference-data/` own their respective screens. `project-editor/` owns the editor and draft helpers/tests, with `general/`, `warehouses/`, `rules/`, `members/` and `history/` sections beneath it.
+  - `setup-dialog/` is shared by the list and editor within this feature. API/model/guards and feature-wide `setup.css` remain at the feature root. Styles retain their existing global import and `.setup-shell` scope. Templates stay beside their components; lazy routes import the new paths.
 - `core/http`: mutation headers and Thai API error translation.
 - `core/layout`: account-aware topbar. `shared` contains reusable brand/icon presentation only.
 - Components retain local form/editing/loading state and presentation. Substantial templates live in adjacent HTML files. Models are imported from dedicated files rather than service implementations.

@@ -21,6 +21,7 @@ Read `docs/HANDOFF.md` before resuming work. The owner's current instructions de
 ## Frontend
 
 - Organize by feature. Keep shared code limited to reusable UI and cross-feature infrastructure.
+- Within growing features, group related screens and form sections into meaningful subfolders. Co-locate each component's TypeScript/template/styles and its tests; keep editor-only draft logic beside the editor. Feature-wide API/models may remain at the feature root. Avoid flat directories containing many unrelated screens and avoid creating folders solely for file types or single shared model files.
 - Components own presentation, user interaction and local form/UI state. Delegate HTTP and reusable business workflows to focused services.
 - Separate API access, session/shared state and feature responsibilities as needed; do not replace one large component with one large service.
 - Define models and API request/response types in dedicated files near their owning feature. Avoid duplicate definitions and imports of domain types from service implementations.

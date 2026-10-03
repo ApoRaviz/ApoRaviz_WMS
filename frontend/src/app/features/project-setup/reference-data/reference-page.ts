@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Topbar } from '../../core/layout/topbar';
-import { apiErrorMessage } from '../../core/http/api-error';
-import { SetupApi } from './setup-api.service';
-import { ReferenceCatalog } from './setup.model';
+import { Topbar } from '../../../core/layout/topbar';
+import { apiErrorMessage } from '../../../core/http/api-error';
+import { SetupApi } from '../setup-api.service';
+import { ReferenceCatalog } from '../setup.model';
 @Component({
   selector: 'wms-project-references',
   imports: [Topbar, RouterLink, FormsModule],

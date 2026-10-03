@@ -1,5 +1,32 @@
 # สถานะล่าสุด — 2026-10-03
 
+## ปิดงานวันนี้ — จัดโฟลเดอร์และเตรียมต่อรอบหน้า
+
+คำสั่งล่าสุด: จัดไฟล์/โฟลเดอร์ Project Setup ตามแบบที่คุยกัน และบันทึกงานวันนี้เพื่อกลับมาทำต่อ รอบนี้ไม่เริ่มโมดูลใหม่อัตโนมัติ
+
+- ใช้ branch `refactor/internal-bigint-ids` ต่อใน checkout เดิม; งาน ID อยู่ที่ `ca5e6bb` และ regression/runbook อยู่ที่ `d8083a8`; ดู commit จัดโฟลเดอร์ล่าสุดด้วย `git log -1`
+- ย้าย 18 ไฟล์ใน `frontend/src/app/features/project-setup` เป็น `project-list/`, `reference-data/`, `project-editor/` พร้อมหมวด `general/warehouses/rules/members/history` และ `setup-dialog/`; draft helper/tests อยู่กับ editor ส่วน API/model/guard/CSS ที่ใช้ร่วมกันอยู่ระดับ feature
+- แก้ import และ lazy routes ให้ตรงตำแหน่งใหม่ เปรียบเทียบ source ยืนยันว่าพฤติกรรม/template/style เดิมคงเดิม; Frontend 26/26 + production build, source boundaries และ Edge 11/11 หลังย้ายไฟล์ผ่าน ดู [QA การจัดโฟลเดอร์](qa/2026-10-03-project-setup-folders.md)
+- เพิ่มกฎจัดโฟลเดอร์ตามหน้าจอ/หมวดงานใน AGENTS.md และอัปเดต ARCHITECTURE.md ให้ใช้เป็นแนวทางครั้งต่อไป
+
+### สรุปสิ่งที่ทำวันนี้
+
+1. ทำ refactor แยกชั้น Backend/Frontend ของ Module 1 ตามแผนเดิม ตรวจ Login/การเลือก Project/สิทธิ์/การจัดการสมาชิก และแก้ cursor หมุนเมื่อ hover ปุ่ม disabled
+2. ทำต้นแบบ Inbound ด้วย mock data ก่อน; ต่อมาผู้ใช้ให้ทำ Project Setup ส่วนกลางก่อนเชื่อมงาน Inbound
+3. ทำ Project Setup ตามแบบ: Admin/Manager, draft/activation, คลังร่วมหลาย Project, กฎ, สมาชิก, audit และ version; แก้การเขียนสมาชิกทับข้ามหน้าและ dirty logout ตาม review
+4. ปรับ ID ภายในเป็น bigint พร้อม public ID เดิมและ UUIDv7 สำหรับรายการใหม่; migration/rollback/concurrency/precision tests และ benchmark พร้อมคู่มือ deployment
+5. จัดโฟลเดอร์ Project Setup ตามหน้าที่ พร้อมบันทึกหลักเกณฑ์คุณภาพโครงสร้างสำหรับงานต่อไป
+
+### เริ่มรอบหน้า
+
+- อ่าน AGENTS.md และ HANDOFF ส่วนล่าสุด ตรวจ `git status` ก่อนแก้ไข; `frontend/angular.json` เป็นการแก้ของผู้ใช้ ต้องเก็บไว้ ไม่รวม commit โดยพลการ
+- **ฐานจริงยังไม่ได้ apply migration003**: ก่อนเจ้าของเริ่ม Backend รุ่นใหม่ ต้องหยุดรุ่นเดิม สำรองและตรวจ restore ตาม [runbook](qa/2026-10-03-internal-bigint-ids.md) ไม่ใช้ reset หรือ `docker compose down -v`; ไม่หยุด server ของเจ้าของโดยไม่ได้รับคำสั่ง
+- ให้เจ้าของลอง Project Setup/Login/สมาชิกด้วยข้อมูลจริงหลัง deployment อย่างควบคุมก่อนต่อโมดูลปฏิบัติงาน
+- Client/Warehouse ขณะนี้มีรายการและสร้างข้อมูลกลาง การแก้ไขข้อมูลเดิมยังไม่ได้ทำ; คุยขอบเขตแก้ชื่อ/สถานะ/รหัสก่อนเริ่มรอบนั้น
+- Inbound ยังเป็นต้นแบบ mock; การบังคับกฎกับธุรกรรมจริงและ Serial/Allocation/Outbound/Labels/Integration ยังไม่เริ่ม
+- ข้อเล็กที่คงไว้: Manager อาจเห็น ID แทนชื่อ Client/คลังเก่าในประวัติ; การ initialize ฐานใหม่พร้อมกันครั้งแรกยังไม่รับรอง ให้เริ่ม instance แรกตัวเดียว
+- เก็บงานเป็น local commits ยังไม่ merge/push งานล่าสุด; Backend 32/32 เป็นผลรอบงาน ID (รอบจัดโฟลเดอร์ไม่ได้แก้ Backend) ส่วน Frontend 26/26 และ Edge 11/11 รันใหม่หลังจัดโฟลเดอร์แล้ว รายละเอียดอยู่ใน QA ของแต่ละรอบ
+
 ## Internal IDs — bigint พร้อม public ID เดิม
 
 - Branch ปัจจุบัน `refactor/internal-bigint-ids` จาก `eda16b9`; implementation `ca5e6bb` เปลี่ยน PK ภายใน Users/Projects/Clients/Warehouses และ FK ทั้ง 10 จุดเป็น bigint identity โดยเก็บ ID เดิมใน `public_id` unique; รายการใหม่ให้ PostgreSQL 18 สร้าง public ID แบบ UUIDv7
