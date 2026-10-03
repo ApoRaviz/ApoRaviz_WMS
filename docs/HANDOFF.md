@@ -1,5 +1,21 @@
 # สถานะล่าสุด — 2026-10-03
 
+## Inbound: รอบออกแบบด้วย mock data
+
+คำสั่งล่าสุดให้ตรวจ Login/การทำงานเดิมซ้ำ แล้วแตก branch เริ่มออกแบบ Inbound โดยไม่รอคำตอบระหว่างผู้ใช้ไม่อยู่ จึงไม่ต้องรออนุญาตเริ่มโมดูลถัดไปตามข้อความเก่าในประวัติ แต่รอบนี้ยังเป็น “ออกแบบไปก่อน”
+
+- Refactor เสร็จที่ `d9ba964` และส่ง `refactor/backend-layers` แล้ว; แตก branch ใหม่ `feat/inbound-mock` จาก commit นี้
+- ตรวจ Login/Module 1 ซ้ำ: Backend 13/13, Frontend 22/22, builds/source boundaries ผ่าน, Edge+API/Postgres 8/8 บน schema ชั่วคราวและพอร์ต 3002/4202 โดยคงระบบจริง 3000/4200 ไว้ ดู [ผลตรวจ](qa/2026-10-03-module1-recheck.md)
+- ใช้ brainstorming ออกแบบคิว → รับ → ตรวจตาม config → จัดเก็บ; ทำ interactive prototype ใน `docs/prototypes/inbound/` พร้อม mock memory เท่านั้น ไม่มี API/stock/database writes
+- เปิด preview: `http://127.0.0.1:4300`; รันใหม่ได้ด้วย `.\.tools\node-v24.21.0-win-x64\node.exe scripts/preview-inbound.mjs`
+- ต้นแบบลอง partial receive, batch/lot, quarantine, project config, mock roles, create/release, error/retry และ command replay ได้; desktop/tablet/mobile + keyboard dialog ผ่าน ดู [คู่มือลอง](prototypes/inbound/README.md) และ [ผลตรวจ](qa/2026-10-03-inbound-prototype.md)
+- Review แก้ pending command หลัง reset/navigation, batch trace, mobile history/target size และ summary count แล้ว
+- [Design spec](superpowers/specs/2026-10-03-inbound-mock-design.md) ระบุสมมติฐานที่ยังไม่ถือว่าเจ้าของตรวจรับ; [แผน Angular mock](superpowers/plans/2026-10-03-inbound-angular-mock.md) เป็นขั้นถัดไป ยังไม่ได้ execute
+- งานถัดไป: ทบทวนต้นแบบ/สมมติฐานกับผู้ใช้ แล้วนำ workflow เข้า Angular ภายใต้ session/workspace guard ตามแผน; Backend Inbound/ledger/concurrency เป็นงานแยกภายหลัง
+- `frontend/angular.json` ยังคงเป็นการแก้ analytics ของผู้ใช้ อย่ารวม commit
+
+## ประวัติรอบ refactor
+
 ผู้ใช้สั่งเริ่มทำต่อและอนุมัติให้ทำตามแผน โดยใช้ brainstorming ตามเดิม ข้อความพักงานด้านล่างเป็นประวัติเดิม ไม่ใช่คำสั่งปัจจุบัน
 
 ## ผลการ refactor Module 1

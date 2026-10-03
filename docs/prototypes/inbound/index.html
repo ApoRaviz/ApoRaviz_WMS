@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>รับสินค้าเข้า · Apo WMS — ต้นแบบ</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">ข้ามไปเนื้อหาหลัก</a>
+    <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <symbol id="box" viewBox="0 0 24 24">
+          <path
+            d="m12 3 9 5v9l-9 5-9-5V8l9-5Zm0 10v9M3 8l9 5 9-5M7.5 5.5l9 5V16"
+          />
+        </symbol>
+        <symbol id="inbox" viewBox="0 0 24 24">
+          <path
+            d="M5 9 2 17v4h20v-4l-3-8M2 17h6l2 3h4l2-3h6M12 2v12m-4-4 4 4 4-4"
+          />
+        </symbol>
+        <symbol id="search" viewBox="0 0 24 24">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="m16 16 5 5" />
+        </symbol>
+        <symbol id="plus" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14" />
+        </symbol>
+        <symbol id="arrow" viewBox="0 0 24 24">
+          <path d="M4 12h16m-6-6 6 6-6 6" />
+        </symbol>
+        <symbol id="check" viewBox="0 0 24 24">
+          <path d="m5 12 4 4L19 6" />
+        </symbol>
+        <symbol id="clock" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 6v6l4 2" />
+        </symbol>
+        <symbol id="scan" viewBox="0 0 24 24">
+          <path
+            d="M3 8V3h5m8 0h5v5m0 8v5h-5M8 21H3v-5M7 7v10m3-10v10m4-10v10m3-10v10"
+          />
+        </symbol>
+        <symbol id="layers" viewBox="0 0 24 24">
+          <path d="m12 3 10 5-10 5L2 8l10-5Zm-9 9 9 5 9-5M3 17l9 5 9-5" />
+        </symbol>
+        <symbol id="shield" viewBox="0 0 24 24">
+          <path d="m12 2 9 4v6c0 6-9 10-9 10S3 18 3 12V6l9-4Zm-4 9 3 3 5-6" />
+        </symbol>
+      </defs>
+    </svg>
+    <div class="demo-strip">
+      <span><b>DESIGN PREVIEW</b> ข้อมูลสมมติ · ไม่กระทบสต็อกจริง</span
+      ><button id="options-toggle" aria-expanded="false">ตัวเลือกต้นแบบ</button>
+    </div>
+    <section
+      id="demo-options"
+      class="demo-options"
+      hidden
+      aria-label="ตัวเลือกต้นแบบ"
+    >
+      <label
+        >บทบาทตัวอย่าง
+        <select id="role">
+          <option value="manager">Manager</option>
+          <option value="supervisor">Supervisor</option>
+          <option value="operator">Operator</option>
+          <option value="customer">Customer · ดูอย่างเดียว</option>
+        </select></label
+      >
+      <button id="error-demo" class="secondary">จำลองโหลดไม่สำเร็จ</button
+      ><button id="replay-demo" class="secondary" disabled>
+        ส่งคำสั่งล่าสุดซ้ำ</button
+      ><button id="reset-demo" class="secondary">คืนข้อมูลเริ่มต้น</button>
+      <span>ข้อมูลอยู่ในแท็บนี้ รีเฟรชเพื่อเริ่มใหม่</span>
+    </section>
+    <div class="shell">
+      <aside class="sidebar">
+        <a href="#" class="brand" id="brand-home"
+          ><span class="brand-mark"
+            ><svg><use href="#box" /></svg></span
+          ><span
+            ><strong>Apo<span> WMS</span></strong
+            ><small>WAREHOUSE MANAGEMENT</small></span
+          ></a
+        >
+        <label class="project-label" for="project">โปรเจกต์ที่ทำงาน</label
+        ><select id="project">
+          <option value="apo">Apo</option>
+          <option value="squ">Squ</option>
+          <option value="mdr">Mdr</option>
+        </select>
+        <p class="client">บริษัทตัวอย่าง</p>
+        <p class="nav-label">งานคลังสินค้า</p>
+        <button class="nav-item active" id="nav-inbound">
+          <svg><use href="#inbox" /></svg>รับสินค้าเข้า<span>Inbound</span>
+        </button>
+        <div class="sidebar-note">
+          <svg><use href="#shield" /></svg><strong>ทุกขั้นตอนตรวจสอบได้</strong>
+          <p>จากแผนรับ สู่ตำแหน่งจัดเก็บ<br />ในโปรเจกต์เดียวกัน</p>
+        </div>
+        <div class="sidebar-foot">
+          <span class="dot"></span>ต้นแบบ Module Inbound
+        </div>
+      </aside>
+      <div class="workspace">
+        <header class="topbar">
+          <div class="crumb">
+            <span id="crumb-project">Apo</span><span>/</span
+            ><strong>รับสินค้าเข้า</strong>
+          </div>
+          <div class="profile">
+            <span class="avatar">น</span>
+            <div>
+              <b>นภา ใจดี</b
+              ><small id="role-name">ผู้จัดการ · บัญชีตัวอย่าง</small>
+            </div>
+          </div>
+        </header>
+        <main id="main" tabindex="-1"></main>
+        <footer class="footer">
+          Apo WMS <span>ออกแบบให้ทุกการรับเข้า มีที่มาและปลายทางชัดเจน</span>
+        </footer>
+      </div>
+    </div>
+    <div class="toast" id="toast" role="status" hidden></div>
+    <dialog id="create-dialog" aria-labelledby="dialog-title"></dialog>
+  </body>
+</html>
