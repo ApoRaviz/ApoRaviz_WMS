@@ -147,13 +147,28 @@ test('administrator creates project memberships, edits permissions and disables 
   await page.screenshot({ path: 'test-results/module1-projects-desktop.png', fullPage: true });
   await page.getByRole('link', { name: 'จัดการระบบ', exact: true }).click();
   await page.getByRole('button', { name: 'เพิ่มผู้ใช้งาน', exact: true }).click();
+  const saveUser = page.getByRole('button', { name: 'บันทึกผู้ใช้งาน', exact: true });
+  let userWrites = 0;
+  page.on('request', request => {
+    if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/admin/users') userWrites++;
+  });
+  await expect(saveUser).toBeDisabled();
+  await saveUser.hover();
+  await expect(saveUser).toHaveText('บันทึกผู้ใช้งาน');
+  await expect(saveUser).toHaveCSS('cursor', 'not-allowed');
+  expect(userWrites).toBe(0);
   await page.getByLabel('ชื่อผู้ใช้', { exact: true }).fill(username);
   await page.getByLabel('ชื่อที่แสดง', { exact: true }).fill('ทดสอบสร้างผ่านหน้าจอ');
   await page.getByLabel('รหัสผ่านชั่วคราว', { exact: true }).fill(temporaryPassword);
   await page.getByLabel('บทบาทในโปรเจกต์ Apo', { exact: true }).selectOption('manager');
   await page.getByLabel('บทบาทในโปรเจกต์ Squ', { exact: true }).selectOption('operator');
+  await expect(saveUser).toBeEnabled();
+  await saveUser.hover();
+  await expect(saveUser).toHaveCSS('cursor', 'pointer');
+  expect(userWrites).toBe(0);
   await page.getByRole('button', { name: 'บันทึกผู้ใช้งาน', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('บันทึกผู้ใช้งานเรียบร้อยแล้ว');
+  expect(userWrites).toBe(1);
   const card = page.locator('article').filter({ hasText: username });
   await expect(card).toContainText('Manager');
   await expect(card).toContainText('Operator');
