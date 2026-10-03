@@ -34,14 +34,22 @@ export class Database {
     await this.pool.query(
       "CREATE TABLE IF NOT EXISTS schema_migrations (version integer PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())",
     );
-    const migrationPath = resolve(__dirname, "../migrations/001_module1.sql");
-    const sql = await readFile(migrationPath, "utf8");
-    await this.transaction(async (client) => {
-      const inserted = await client.query(
-        "INSERT INTO schema_migrations(version) VALUES (1) ON CONFLICT DO NOTHING RETURNING version",
+    for (const [version, file] of [
+      [1, "001_module1.sql"],
+      [2, "002_project_setup.sql"],
+    ] as const) {
+      const sql = await readFile(
+        resolve(__dirname, "../migrations", file),
+        "utf8",
       );
-      if (inserted.rowCount) await client.query(sql);
-    });
+      await this.transaction(async (client) => {
+        const inserted = await client.query(
+          "INSERT INTO schema_migrations(version) VALUES ($1) ON CONFLICT DO NOTHING RETURNING version",
+          [version],
+        );
+        if (inserted.rowCount) await client.query(sql);
+      });
+    }
     await this.bootstrapAdmin();
   }
 

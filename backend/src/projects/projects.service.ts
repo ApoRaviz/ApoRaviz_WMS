@@ -25,7 +25,8 @@ export class ProjectsService {
       : (await this.projects.assigned(user.id)).find(
           (p) => p.id === id && p.permissions.includes("workspace.view"),
         );
-    if (!project) fail(403, "Project access denied");
+    if (!project || project.status !== "active")
+      fail(403, "Project access denied");
     return { project };
   }
   private forAdmin(project: Project): AccessibleProject {

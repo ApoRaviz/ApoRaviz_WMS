@@ -4,8 +4,9 @@ import { UsersDataModule } from "./users-data.module";
 import { UsersController } from "./users.controller";
 import { UsersService } from "./users.service";
 import { ExistingUserGuard, PasswordResetTargetGuard } from "./users.guards";
+import { ProjectsDataModule } from "../projects/projects-data.module";
 @Module({
-  imports: [AuthModule, UsersDataModule],
+  imports: [AuthModule, UsersDataModule, ProjectsDataModule],
   controllers: [UsersController],
   providers: [UsersService, ExistingUserGuard, PasswordResetTargetGuard],
 })

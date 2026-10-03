@@ -3,6 +3,7 @@ import { RolesService } from './roles/roles.service';
 import { ProjectsService } from '../projects/projects.service';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import type { AdminProject } from '../projects/project.model';
 import { apiErrorMessage } from '../../core/http/api-error';
 import type { ManagedUser } from './users/user.model';
@@ -34,7 +35,7 @@ const emptyDraft = (): UserDraft => ({
 
 @Component({
   selector: 'wms-admin',
-  imports: [FormsModule, Topbar, Icon],
+  imports: [FormsModule, Topbar, Icon, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin.html',
 })

@@ -47,11 +47,27 @@
             <button
               type="button"
               class="project-enter mt-5"
+              [disabled]="!!project.status && project.status !== 'active'"
               [attr.aria-label]="'เข้าโปรเจกต์ ' + project.name"
               (click)="enter(project.id)"
             >
               <span>เข้าสู่พื้นที่ทำงาน</span><wms-icon name="arrow" />
             </button>
+            @if (project.status && project.status !== 'active') {
+              <p class="mt-3 text-sm text-muted">
+                {{
+                  project.status === 'draft' ? 'ฉบับร่าง — ยังไม่เปิดใช้งาน' : 'โปรเจกต์ปิดใช้งาน'
+                }}
+              </p>
+            }
+            @if (session.user()?.isAdmin || project.roleId === 'manager') {
+              <a
+                class="nav-link mt-2"
+                [routerLink]="['/projects', project.id, 'settings']"
+                [attr.aria-label]="'ตั้งค่าโปรเจกต์ ' + project.name"
+                >ตั้งค่าโปรเจกต์</a
+              >
+            }
           </article>
         } @empty {
           <section class="empty-state md:col-span-3">

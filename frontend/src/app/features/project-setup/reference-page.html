@@ -1,0 +1,62 @@
+<wms-topbar />
+<main id="main-content" tabindex="-1" class="page-shell setup-shell">
+  <a routerLink="/admin/projects" class="nav-link">← จัดการโปรเจกต์</a>
+  <header class="setup-heading">
+    <div>
+      <p class="eyebrow">REFERENCE DATA</p>
+      <h1>ข้อมูลกลาง Client / คลัง</h1>
+      <p>เตรียมข้อมูลสำหรับเลือกใช้ใน Project Setup</p>
+    </div>
+  </header>
+  @if (error()) {
+    <p role="alert" class="alert-error mb-5">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p role="status" class="alert-success mb-5">{{ success() }}</p>
+  }
+  @if (loading()) {
+    <p role="status">กำลังโหลดข้อมูลกลาง…</p>
+  } @else {
+    <div class="setup-reference-grid">
+      @for (g of groups; track g.kind) {
+        <section class="surface-card setup-panel">
+          <h2>{{ g.title }}</h2>
+          <p class="setup-note">{{ g.description }}</p>
+          <form ngNativeValidate (ngSubmit)="form.valid && create(g.kind)" #form="ngForm">
+            <fieldset [disabled]="saving()">
+              <label
+                >รหัส {{ g.title
+                }}<input
+                  name="code"
+                  [attr.aria-label]="'รหัส ' + g.title"
+                  required
+                  pattern="[A-Za-z0-9][A-Za-z0-9_\-]{1,29}"
+                  maxlength="30"
+                  [(ngModel)]="drafts[g.kind].code"
+                /><small>อังกฤษ ตัวเลข _ หรือ - จำนวน 2–30 ตัว</small></label
+              ><label class="mt-4"
+                >ชื่อ {{ g.title
+                }}<input
+                  name="name"
+                  [attr.aria-label]="'ชื่อ ' + g.title"
+                  required
+                  maxlength="100"
+                  [(ngModel)]="drafts[g.kind].name" /></label
+              ><button type="submit" class="primary-button mt-5">เพิ่ม{{ g.title }}</button>
+            </fieldset>
+          </form>
+          <ul>
+            @for (item of catalog()[g.kind]; track item.id) {
+              <li>
+                <strong>{{ item.name }}</strong
+                ><small>{{ item.code }}</small>
+              </li>
+            } @empty {
+              <li>ยังไม่มีข้อมูล</li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  }
+</main>

@@ -12,18 +12,21 @@ export class ProjectsRepository {
   async list(): Promise<Project[]> {
     return (
       await this.db.query<Project>(
-        "SELECT id,code,name,client,description,accent FROM projects ORDER BY name",
+        "SELECT id,code,name,client,description,accent,status FROM projects ORDER BY name",
       )
     ).rows;
   }
   async find(id: string): Promise<Project | undefined> {
     return (
-      await this.db.query<Project>("SELECT * FROM projects WHERE id=$1", [id])
+      await this.db.query<Project>(
+        "SELECT id,code,name,client,description,accent,status FROM projects WHERE id=$1",
+        [id],
+      )
     ).rows[0];
   }
   async assigned(userId: string): Promise<AccessibleProject[]> {
     const result = await this.db.query<AssignedProjectRow>(
-      `SELECT p.id,p.code,p.name,p.client,p.description,p.accent,m.role_id,"r".name role_name,coalesce(array_agg(rp.permission_id) FILTER (WHERE rp.permission_id IS NOT NULL),'{}') permissions FROM projects p JOIN memberships m ON m.project_id=p.id JOIN roles "r" ON "r".id=m.role_id LEFT JOIN role_permissions rp ON rp.role_id=m.role_id WHERE m.user_id=$1 GROUP BY p.id,m.role_id,"r".name ORDER BY p.name`,
+      `SELECT p.id,p.code,p.name,p.client,p.description,p.accent,p.status,m.role_id,"r".name role_name,coalesce(array_agg(rp.permission_id) FILTER (WHERE rp.permission_id IS NOT NULL),'{}') permissions FROM projects p JOIN memberships m ON m.project_id=p.id JOIN roles "r" ON "r".id=m.role_id LEFT JOIN role_permissions rp ON rp.role_id=m.role_id WHERE m.user_id=$1 AND (p.status='active' OR m.role_id='manager') GROUP BY p.id,m.role_id,"r".name ORDER BY p.name`,
       [userId],
     );
     return result.rows.map((p) => ({
@@ -33,6 +36,7 @@ export class ProjectsRepository {
       client: p.client,
       description: p.description,
       accent: p.accent,
+      status: p.status,
       roleId: p.role_id,
       roleName: p.role_name,
       permissions: p.permissions,

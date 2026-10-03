@@ -1,0 +1,69 @@
+<div class="setup-form-grid">
+  <label
+    >รหัสโปรเจกต์<input [value]="detail().project.code" readonly /><small
+      >กำหนดครั้งเดียวตอนสร้าง ใช้อ้างอิงข้อมูลตลอดอายุโปรเจกต์</small
+    ></label
+  >
+  <label
+    >ชื่อโปรเจกต์ *<input
+      name="projectName"
+      aria-label="ชื่อโปรเจกต์ *"
+      required
+      maxlength="100"
+      [(ngModel)]="draft().name"
+      (ngModelChange)="changed.emit()"
+      #projectName="ngModel"
+    /><small class="text-red-700" [hidden]="!projectName.invalid || !projectName.touched"
+      >กรุณาระบุชื่อโปรเจกต์</small
+    ></label
+  >
+  <label class="setup-full"
+    >Client *<select
+      name="clientId"
+      aria-label="Client *"
+      [(ngModel)]="draft().clientId"
+      (ngModelChange)="changed.emit()"
+      [disabled]="!detail().canAdmin || !!detail().project.firstTransactionAt"
+      required
+    >
+      @for (c of detail().catalog.clients; track c.id) {
+        <option [value]="c.id">{{ c.code }} · {{ c.name }}</option>
+      }</select
+    ><small>{{
+      detail().project.firstTransactionAt
+        ? 'ล็อกหลังเริ่มมีธุรกรรม'
+        : detail().canAdmin
+          ? 'เลือกจากข้อมูลกลาง Client'
+          : 'Admin เป็นผู้กำหนด Client'
+    }}</small></label
+  >
+  <label class="setup-full"
+    >คำอธิบาย<textarea
+      name="description"
+      aria-label="คำอธิบาย"
+      rows="3"
+      maxlength="500"
+      [(ngModel)]="draft().description"
+      (ngModelChange)="changed.emit()"
+    ></textarea
+    ><small>{{ draft().description.length }}/500 ตัวอักษร</small></label
+  >
+  <label
+    >สีประจำโปรเจกต์<select
+      name="accent"
+      [(ngModel)]="draft().accent"
+      (ngModelChange)="changed.emit()"
+    >
+      <option value="violet">ม่วง</option>
+      <option value="blue">น้ำเงิน</option>
+      <option value="teal">เขียว</option>
+    </select></label
+  >
+  <div class="setup-preview" [attr.data-accent]="draft().accent">
+    <span class="setup-monogram">{{ draft().name.slice(0, 1) || 'P' }}</span>
+    <div>
+      <small>ตัวอย่างการ์ดโปรเจกต์</small><strong>{{ draft().name || 'ชื่อโปรเจกต์' }}</strong
+      ><small>{{ detail().project.code }}</small>
+    </div>
+  </div>
+</div>

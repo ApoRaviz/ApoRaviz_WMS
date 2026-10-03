@@ -6,6 +6,7 @@ export interface Project {
   client: string;
   description: string;
   accent: 'blue' | 'violet' | 'teal';
+  status?: 'draft' | 'active' | 'inactive';
   roleId: RoleId | 'administrator';
   roleName: string;
   permissions: string[];

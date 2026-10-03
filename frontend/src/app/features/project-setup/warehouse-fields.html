@@ -1,0 +1,39 @@
+<p class="setup-note">
+  คลังหนึ่งใช้ร่วมกับหลายโปรเจกต์ได้ สต็อกและสิทธิ์ยังแยกตาม Project
+  การเปลี่ยนคลังเริ่มต้นมีผลกับรายการใหม่เท่านั้น
+</p>
+@if (!detail().canAdmin) {
+  <p class="setup-note">คุณเปลี่ยนคลังเริ่มต้นได้เฉพาะคลังที่ Admin อนุญาต</p>
+}
+@if (!detail().catalog.warehouses.length) {
+  <div class="empty-state">
+    <h3>ยังไม่มีคลังที่เลือกได้</h3>
+    <p>ให้ Admin เตรียมข้อมูลคลังสินค้าในหน้าข้อมูลกลางก่อน</p>
+  </div>
+}
+@for (w of detail().catalog.warehouses; track w.id) {
+  <div class="setup-warehouse-row">
+    <label class="check-label"
+      ><input
+        type="checkbox"
+        [attr.aria-label]="'ใช้คลัง ' + w.name"
+        [checked]="draft().warehouseIds.includes(w.id)"
+        [disabled]="!detail().canAdmin"
+        (change)="toggle(w.id, $any($event.target).checked)"
+      /><span
+        ><strong>{{ w.name }}</strong
+        ><small>{{ w.code }}</small></span
+      ></label
+    ><label class="check-label"
+      ><input
+        type="radio"
+        name="defaultWarehouse"
+        [value]="w.id"
+        [(ngModel)]="draft().defaultWarehouseId"
+        (ngModelChange)="changed.emit()"
+        [disabled]="!draft().warehouseIds.includes(w.id)"
+        [attr.aria-label]="'คลังเริ่มต้น ' + w.name"
+      />คลังเริ่มต้น</label
+    >
+  </div>
+}

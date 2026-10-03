@@ -27,6 +27,7 @@ export interface Project {
   client: string;
   description: string;
   accent: "blue" | "violet" | "teal";
+  status: "draft" | "active" | "inactive";
 }
 export interface AccessibleProject extends Project {
   roleId: RoleId | "administrator";

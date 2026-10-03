@@ -1,0 +1,56 @@
+<div class="setup-note">
+  เตรียมไว้สำหรับโมดูลปฏิบัติงาน — รอบนี้บันทึกการตั้งค่าเท่านั้น ยังไม่เชื่อม Inbound
+  หรือเปลี่ยนสต็อก
+</div>
+@if (detail().project.firstTransactionAt) {
+  <div class="setup-warning">
+    กฎถูกล็อกหลังเริ่มมีธุรกรรมเมื่อ
+    {{ detail().project.firstTransactionAt | date: 'dd/MM/yyyy HH:mm' }}
+    การเปลี่ยนต้องเป็นงานย้ายกฎแยกต่างหาก
+  </div>
+}
+@if (!detail().canAdmin) {
+  <p class="setup-note">Manager ดูกฎได้ การแก้ไขเป็นสิทธิ์ของ Admin</p>
+}
+<fieldset
+  [disabled]="!detail().canAdmin || !!detail().project.firstTransactionAt"
+  class="setup-form-grid"
+>
+  <label
+    >การควบคุม Lot<select
+      name="lotControl"
+      aria-label="การควบคุม Lot"
+      [(ngModel)]="draft().rules.lot"
+      (ngModelChange)="changed.emit()"
+    >
+      <option value="off">ปิด</option>
+      <option value="item">กำหนดรายสินค้า</option>
+      <option value="required">บังคับทุกสินค้า</option>
+    </select></label
+  >
+  <label
+    >การควบคุมวันหมดอายุ<select
+      name="expiryControl"
+      aria-label="การควบคุมวันหมดอายุ"
+      [(ngModel)]="draft().rules.expiry"
+      (ngModelChange)="changed.emit()"
+    >
+      <option value="off">ปิด</option>
+      <option value="item">กำหนดรายสินค้า</option>
+      <option value="required">บังคับทุกสินค้า</option>
+    </select></label
+  >
+  <label class="check-label setup-full"
+    ><input
+      name="inspection"
+      type="checkbox"
+      [(ngModel)]="draft().rules.inspection"
+      (ngModelChange)="changed.emit()"
+    />ต้องตรวจสินค้าก่อนจัดเก็บ</label
+  >
+</fieldset>
+<p class="setup-note">
+  ปิด: ไม่ใช้การควบคุมนี้ · กำหนดรายสินค้า: Item ระบุว่าต้องใช้หรือไม่ · บังคับทุกสินค้า: Item
+  ต้องใช้ตามกฎ Project
+</p>
+<p class="setup-note">Serial และการตั้งค่าโมดูลอื่นจะเพิ่มเมื่อโมดูลนั้นรองรับ</p>

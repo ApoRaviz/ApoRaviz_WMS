@@ -1,0 +1,149 @@
+<wms-topbar />
+<main id="main-content" tabindex="-1" class="page-shell setup-shell">
+  <a routerLink="/admin" class="nav-link">← จัดการระบบ</a>
+  <header class="setup-heading">
+    <div>
+      <p class="eyebrow">PROJECT ADMINISTRATION</p>
+      <h1>จัดการโปรเจกต์</h1>
+      <p>ข้อมูล คลัง สมาชิก และกฎสำหรับแต่ละโปรเจกต์</p>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <a routerLink="/admin/project-reference-data" class="secondary-button"
+        >ข้อมูลกลาง Client / คลัง</a
+      ><button class="primary-button" type="button" (click)="startCreate()" [disabled]="loading()">
+        สร้างโปรเจกต์
+      </button>
+    </div>
+  </header>
+  @if (error() && !creating()) {
+    <div role="alert" class="alert-error">
+      {{ error() }} <button type="button" (click)="load()">ลองใหม่</button>
+    </div>
+  }
+  @if (loading()) {
+    <p role="status">กำลังโหลดโปรเจกต์…</p>
+  } @else {
+    <div class="setup-filterbar">
+      <label
+        >ค้นหา<input
+          type="search"
+          placeholder="ชื่อ รหัส หรือ Client"
+          [ngModel]="query()"
+          (ngModelChange)="query.set($event)" /></label
+      ><label
+        >Client<select [ngModel]="client()" (ngModelChange)="client.set($event)">
+          <option value="">ทั้งหมด</option>
+          @for (c of catalog().clients; track c.id) {
+            <option [value]="c.id">{{ c.name }}</option>
+          }
+        </select></label
+      ><label
+        >สถานะ<select [ngModel]="status()" (ngModelChange)="status.set($event)">
+          <option value="">ทั้งหมด</option>
+          <option value="draft">ฉบับร่าง</option>
+          <option value="active">เปิดใช้งาน</option>
+          <option value="inactive">ปิดใช้งาน</option>
+        </select></label
+      >
+    </div>
+    <section class="surface-card setup-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>โปรเจกต์</th>
+            <th>Client</th>
+            <th>คลังที่ใช้</th>
+            <th>สถานะ</th>
+            <th>การตั้งค่า</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of filtered(); track p.id) {
+            <tr>
+              <td>
+                <strong>{{ p.name }}</strong
+                ><small>{{ p.code }}</small>
+              </td>
+              <td>{{ p.client }}</td>
+              <td>{{ p.warehouseCount }} แห่ง</td>
+              <td>
+                <span class="setup-status" [attr.data-status]="p.status">{{
+                  labels[p.status]
+                }}</span>
+              </td>
+              <td>
+                <a
+                  class="nav-link"
+                  [routerLink]="['/projects', p.id, 'settings']"
+                  [attr.aria-label]="'ตั้งค่าโปรเจกต์ ' + p.name"
+                  >ตั้งค่า →</a
+                >
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5">ไม่พบโปรเจกต์ ลองเปลี่ยนตัวกรองหรือสร้างโปรเจกต์ใหม่</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+  @if (creating()) {
+    <wms-setup-dialog
+      label="สร้างโปรเจกต์ฉบับร่าง"
+      [busy]="saving()"
+      (cancelled)="creating.set(false)"
+      ><h2 id="create-project-title">สร้างโปรเจกต์ฉบับร่าง</h2>
+      <p>เริ่มจากข้อมูลหลัก แล้วกำหนดคลัง สมาชิก และกฎในหน้าตั้งค่า</p>
+      @if (error()) {
+        <p role="alert" class="alert-error my-4">{{ error() }}</p>
+      }
+      <form
+        ngNativeValidate
+        (ngSubmit)="createForm.valid && create()"
+        #createForm="ngForm"
+        class="mt-5"
+      >
+        <fieldset [disabled]="saving()">
+          <label
+            >Client *<select
+              name="clientId"
+              aria-label="Client *"
+              required
+              [(ngModel)]="draft.clientId"
+            >
+              <option value="">เลือก Client</option>
+              @for (c of catalog().clients; track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select></label
+          >
+          @if (!catalog().clients.length) {
+            <p class="setup-warning">เตรียม Client ในหน้าข้อมูลกลางก่อนสร้างโปรเจกต์</p>
+          }
+          <label class="mt-4"
+            >รหัสโปรเจกต์ *<input
+              name="code"
+              aria-label="รหัสโปรเจกต์ *"
+              required
+              pattern="[A-Za-z0-9][A-Za-z0-9_\-]{1,29}"
+              maxlength="30"
+              [(ngModel)]="draft.code"
+              placeholder="เช่น APO-01"
+            /><small>อังกฤษ ตัวเลข _ หรือ - จำนวน 2–30 ตัว กำหนดแล้วแก้ไม่ได้</small></label
+          ><label class="mt-4"
+            >ชื่อโปรเจกต์ *<input name="name" required maxlength="100" [(ngModel)]="draft.name"
+          /></label>
+          <div class="setup-dialog-actions">
+            <button type="button" class="secondary-button" (click)="creating.set(false)">
+              ยกเลิก</button
+            ><button type="submit" class="primary-button">
+              {{ saving() ? 'กำลังสร้าง…' : 'สร้างฉบับร่าง' }}
+            </button>
+          </div>
+        </fieldset>
+      </form></wms-setup-dialog
+    >
+  }
+</main>

@@ -28,8 +28,11 @@ export class UsersController {
   @Get() list() {
     return this.users.list();
   }
-  @Post() create(@Body(CreateUserPipe) input: CreateUserDto) {
-    return this.users.create(input);
+  @Post() create(
+    @CurrentUser() actor: UserRow,
+    @Body(CreateUserPipe) input: CreateUserDto,
+  ) {
+    return this.users.create(input, actor.id);
   }
   @Patch(":id")
   @UseGuards(ExistingUserGuard)

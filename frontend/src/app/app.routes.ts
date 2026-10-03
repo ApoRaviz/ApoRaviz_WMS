@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { requireProjectSetup, confirmSetupLeave } from './features/project-setup/setup.guard';
 import {
   requireAdmin,
   requireGuest,
@@ -7,6 +8,27 @@ import {
 } from './core/auth/guards';
 
 export const routes: Routes = [
+  {
+    path: 'admin/projects',
+    title: 'จัดการโปรเจกต์ · Apo WMS',
+    canActivate: [requireAdmin],
+    loadComponent: () =>
+      import('./features/project-setup/project-list').then((m) => m.ProjectAdminList),
+  },
+  {
+    path: 'admin/project-reference-data',
+    title: 'ข้อมูลกลาง · Apo WMS',
+    canActivate: [requireAdmin],
+    loadComponent: () =>
+      import('./features/project-setup/reference-page').then((m) => m.ReferencePage),
+  },
+  {
+    path: 'projects/:projectId/settings',
+    title: 'ตั้งค่าโปรเจกต์ · Apo WMS',
+    canActivate: [requireProjectSetup],
+    canDeactivate: [confirmSetupLeave],
+    loadComponent: () => import('./features/project-setup/setup-page').then((m) => m.SetupPage),
+  },
   {
     path: 'login',
     title: 'เข้าสู่ระบบ · Apo WMS',

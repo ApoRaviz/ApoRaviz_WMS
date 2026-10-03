@@ -1,0 +1,171 @@
+<wms-topbar />
+<main id="main-content" tabindex="-1" class="page-shell setup-shell">
+  <a [routerLink]="session.user()?.isAdmin ? '/admin/projects' : '/projects'" class="nav-link"
+    >← {{ session.user()?.isAdmin ? 'จัดการโปรเจกต์' : 'เลือกโปรเจกต์' }}</a
+  >
+  @if (loading()) {
+    <p role="status" class="py-12">กำลังโหลดการตั้งค่า…</p>
+  }
+  @if (error()) {
+    <div role="alert" class="alert-error my-5">{{ error() }}</div>
+    @if (!detail() && !loading()) {
+      <button type="button" class="secondary-button" (click)="load()">ลองใหม่</button>
+    }
+  }
+  @if (detail(); as d) {
+    <header class="setup-heading">
+      <div>
+        <p class="eyebrow">PROJECT SETUP</p>
+        <h1>
+          {{ d.project.name }}
+          <span class="setup-status" [attr.data-status]="d.project.status">{{
+            labels[d.project.status]
+          }}</span>
+        </h1>
+        <p>{{ d.project.code }} · Client {{ d.project.client }}</p>
+        <small
+          >แก้ไขล่าสุดโดย {{ d.project.updatedBy || 'ระบบ' }} ·
+          {{ d.project.updatedAt | date: 'dd/MM/yyyy HH:mm' }} · เวอร์ชัน
+          {{ d.project.version }}</small
+        >
+      </div>
+      @if (d.canAdmin) {
+        <button
+          type="button"
+          class="secondary-button"
+          [disabled]="saving()"
+          (click)="requestStatus()"
+        >
+          {{ d.project.status === 'active' ? 'ปิดใช้งานโปรเจกต์' : 'เปิดใช้งานโปรเจกต์' }}
+        </button>
+      }
+    </header>
+    @if (d.project.status === 'draft') {
+      <div class="setup-note">
+        ฉบับร่าง — กำหนดคลัง คลังเริ่มต้น และ Manager ที่เปิดใช้งาน ก่อนเปิดโปรเจกต์
+      </div>
+    }
+    @if (success()) {
+      <p role="status" class="alert-success mb-5">{{ success() }}</p>
+    }
+    @if (conflict()) {
+      <div class="setup-warning">
+        ข้อมูลที่คุณแก้ยังอยู่ กรุณาโหลดข้อมูลล่าสุดก่อนแก้และบันทึกใหม่<button
+          type="button"
+          class="secondary-button"
+          (click)="reloadLatest()"
+        >
+          โหลดข้อมูลล่าสุด
+        </button>
+      </div>
+    }
+    <nav class="setup-tabs" aria-label="หมวดการตั้งค่า">
+      @for (tab of tabs; track tab.id) {
+        <button
+          type="button"
+          class="tab-button"
+          [attr.aria-current]="section() === tab.id ? 'page' : null"
+          [class.setup-tab-active]="section() === tab.id"
+          [disabled]="saving()"
+          (click)="select(tab.id)"
+        >
+          {{ tab.name }}
+        </button>
+      }
+    </nav>
+    <section class="surface-card setup-panel">
+      <h2>{{ sectionTitle() }}</h2>
+      <form id="setup-form" (submit)="$event.preventDefault(); save()">
+        <fieldset [disabled]="saving()">
+          @switch (section()) {
+            @case ('general') {
+              <wms-setup-general [detail]="d" [draft]="draft" (changed)="changed()" />
+            }
+            @case ('warehouses') {
+              <wms-setup-warehouses [detail]="d" [draft]="draft" (changed)="changed()" />
+            }
+            @case ('rules') {
+              <wms-setup-rules [detail]="d" [draft]="draft" (changed)="changed()" />
+            }
+            @case ('members') {
+              <wms-setup-members [detail]="d" [draft]="draft" (changed)="changed()" />
+            }
+            @case ('history') {
+              <wms-setup-history [detail]="d" />
+            }
+          }
+        </fieldset>
+        @if (writable()) {
+          <div class="setup-savebar">
+            <span>{{ dirty() ? 'มีการแก้ไขที่ยังไม่บันทึก' : 'ข้อมูลล่าสุดบันทึกแล้ว' }}</span>
+            <div>
+              <button
+                type="button"
+                class="secondary-button"
+                [disabled]="saving() || !dirty()"
+                (click)="reset()"
+              >
+                ยกเลิกการแก้ไข</button
+              ><button
+                type="submit"
+                class="primary-button"
+                [disabled]="saving() || !dirty() || conflict()"
+              >
+                {{ saving() ? 'กำลังบันทึก…' : 'บันทึกการเปลี่ยนแปลง' }}
+              </button>
+            </div>
+          </div>
+        }
+      </form>
+    </section>
+  }
+  @if (leavePrompt()) {
+    <wms-setup-dialog label="มีข้อมูลที่ยังไม่บันทึก" [busy]="saving()" (cancelled)="leave('stay')"
+      ><h2 id="leave-title">มีข้อมูลที่ยังไม่บันทึก</h2>
+      <p>เลือกบันทึกก่อนออก หรือทิ้งการแก้ไขเฉพาะหมวดนี้</p>
+      <div class="setup-dialog-actions">
+        <button
+          class="secondary-button"
+          type="button"
+          [disabled]="saving()"
+          (click)="leave('stay')"
+        >
+          อยู่หน้าเดิม</button
+        ><button
+          class="secondary-button"
+          type="button"
+          [disabled]="saving()"
+          (click)="leave('discard')"
+        >
+          ทิ้งการแก้ไข</button
+        ><button
+          class="primary-button"
+          type="button"
+          [disabled]="saving() || conflict()"
+          (click)="leave('save')"
+        >
+          บันทึกก่อนออก
+        </button>
+      </div></wms-setup-dialog
+    >
+  }
+  @if (statusPrompt(); as status) {
+    <wms-setup-dialog label="ยืนยันเปลี่ยนสถานะโปรเจกต์" (cancelled)="statusPrompt.set(null)"
+      ><h2 id="status-title">ยืนยัน{{ labels[status] }}โปรเจกต์</h2>
+      <p>
+        {{
+          status === 'active'
+            ? 'ตรวจคลัง คลังเริ่มต้น สมาชิก และกฎของโปรเจกต์ก่อนเปิดใช้งาน'
+            : 'ปิดการเข้าสู่พื้นที่ปฏิบัติงาน โดยเก็บข้อมูลและประวัติทั้งหมดไว้'
+        }}
+      </p>
+      <div class="setup-dialog-actions">
+        <button class="secondary-button" type="button" (click)="statusPrompt.set(null)">
+          ยกเลิก</button
+        ><button class="primary-button" type="button" (click)="setStatus()">
+          ยืนยัน{{ labels[status] }}
+        </button>
+      </div></wms-setup-dialog
+    >
+  }
+</main>

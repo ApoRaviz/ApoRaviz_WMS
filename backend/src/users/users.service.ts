@@ -8,12 +8,15 @@ import { SessionsRepository } from "../auth/sessions.repository";
 import { UsersRepository } from "./users.repository";
 import { publicUser } from "./user.entity";
 import { CreateUserDto, UpdateUserDto, ResetPasswordDto } from "./users.dto";
+import { MembershipAuditService } from "../projects/setup/membership-audit.service";
 @Injectable()
 export class UsersService {
   constructor(
     @Inject(Database) private readonly db: Database,
     @Inject(UsersRepository) private readonly users: UsersRepository,
     @Inject(SessionsRepository) private readonly sessions: SessionsRepository,
+    @Inject(MembershipAuditService)
+    private readonly membershipAudit: MembershipAuditService,
   ) {}
   async managed(id: string): Promise<ManagedUser> {
     const user = await this.users.find(id);
@@ -28,10 +31,18 @@ export class UsersService {
       (await this.users.listIds()).map((id) => this.managed(id)),
     );
   }
-  async create(input: CreateUserDto): Promise<ManagedUser> {
+  async create(input: CreateUserDto, actorId: string): Promise<ManagedUser> {
     const id = randomUUID();
     try {
       await this.db.transaction(async (client) => {
+        await this.users.lockAdministrators(client);
+        const actor = await this.users.lock(actorId, client);
+        if (!actor?.active || !actor.is_admin || actor.must_change_password)
+          fail(403, "Administrator access required");
+        const before = await this.membershipAudit.capture(
+          input.memberships.map((m) => m.projectId),
+          client,
+        );
         await this.users.create(
           id,
           input.username,
@@ -41,6 +52,7 @@ export class UsersService {
           client,
         );
         await this.users.addMemberships(id, input.memberships, client);
+        await this.membershipAudit.record(actor, before, client);
       });
     } catch (error: unknown) {
       if (databaseErrorCode(error) === "23505")
@@ -65,6 +77,13 @@ export class UsersService {
           fail(403, "Administrator access required");
         const target = await this.users.lock(id, client);
         if (!target) fail(404, "User not found");
+        const previousMemberships = await this.users.memberships(id, client);
+        const before = await this.membershipAudit.capture(
+          [...previousMemberships, ...input.memberships].map(
+            (m) => m.projectId,
+          ),
+          client,
+        );
         if (
           target.is_admin &&
           target.active &&
@@ -75,6 +94,7 @@ export class UsersService {
         }
         await this.users.update(id, input, client);
         await this.users.replaceMemberships(id, input.memberships, client);
+        await this.membershipAudit.record(actor, before, client);
         await this.sessions.revokeUser(id, client);
       });
     } catch (error: unknown) {

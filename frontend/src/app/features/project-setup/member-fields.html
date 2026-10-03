@@ -1,0 +1,61 @@
+<p class="setup-note">
+  ใช้สมาชิกชุดเดียวกับหน้าจัดการผู้ใช้ ต้องมี Manager ที่เปิดใช้งานอย่างน้อยหนึ่งคนก่อนเปิด Project
+</p>
+@if (detail().canAdmin) {
+  <div class="setup-add-member">
+    <label
+      >เลือกผู้ใช้ที่มีอยู่<select
+        name="addUser"
+        aria-label="เลือกผู้ใช้ที่มีอยู่"
+        [(ngModel)]="selectedUser"
+      >
+        <option value="">เลือกผู้ใช้</option>
+        @for (u of availableUsers(); track u.id) {
+          <option [value]="u.id">{{ u.name }} ({{ u.username }})</option>
+        }
+      </select></label
+    ><label
+      >บทบาทที่จะเพิ่ม<select
+        name="addRole"
+        aria-label="บทบาทที่จะเพิ่ม"
+        [(ngModel)]="selectedRole"
+      >
+        @for (role of roles; track role) {
+          <option [value]="role">{{ labels[role] }}</option>
+        }
+      </select></label
+    ><button type="button" class="secondary-button" (click)="add()" [disabled]="!selectedUser">
+      เพิ่มสมาชิก
+    </button>
+  </div>
+}
+@for (m of draft().members; track m.userId) {
+  <div class="setup-member-row">
+    <strong>{{ name(m.userId) }}</strong
+    ><label
+      ><span class="sr-only">บทบาทของ {{ name(m.userId) }}</span
+      ><select
+        [name]="'role-' + m.userId"
+        [(ngModel)]="m.roleId"
+        [disabled]="!detail().canAdmin"
+        (ngModelChange)="changed.emit()"
+      >
+        @for (role of roles; track role) {
+          <option [value]="role">{{ labels[role] }}</option>
+        }
+      </select></label
+    >
+    @if (detail().canAdmin) {
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="remove(m.userId)"
+        [attr.aria-label]="'นำสมาชิกออก ' + name(m.userId)"
+      >
+        นำออก
+      </button>
+    }
+  </div>
+} @empty {
+  <div class="empty-state">ยังไม่มีสมาชิกในโปรเจกต์นี้</div>
+}

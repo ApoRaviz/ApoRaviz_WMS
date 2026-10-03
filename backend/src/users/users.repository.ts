@@ -35,12 +35,13 @@ export class UsersRepository {
       )
     ).rows.map((row) => row.id);
   }
-  async memberships(id: string): Promise<Membership[]> {
+  async memberships(id: string, client?: PoolClient): Promise<Membership[]> {
+    const sql =
+      'SELECT project_id "projectId",role_id "roleId" FROM memberships WHERE user_id=$1 ORDER BY project_id';
     return (
-      await this.db.query<Membership>(
-        'SELECT project_id "projectId",role_id "roleId" FROM memberships WHERE user_id=$1 ORDER BY project_id',
-        [id],
-      )
+      client
+        ? await client.query<Membership>(sql, [id])
+        : await this.db.query<Membership>(sql, [id])
     ).rows;
   }
   async create(
