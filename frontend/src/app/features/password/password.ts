@@ -1,132 +1,17 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { apiErrorMessage, SessionService } from '../../core/session';
+import { apiErrorMessage } from '../../core/http/api-error';
+import { SessionService } from '../../core/auth/session.service';
 import { Brand } from '../../shared/brand';
 import { Icon } from '../../shared/icon';
-import { Topbar } from '../../shared/topbar';
+import { Topbar } from '../../core/layout/topbar';
 
 @Component({
   selector: 'wms-password',
   imports: [ReactiveFormsModule, Brand, Icon, Topbar],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="flex min-h-dvh flex-col bg-canvas">
-      @if (!forced()) {
-        <wms-topbar />
-      } @else {
-        <header class="border-b border-line bg-white px-5 py-5 sm:px-10">
-          <div class="mx-auto flex max-w-7xl items-center justify-between gap-4">
-            <wms-brand />
-            <button
-              type="button"
-              class="secondary-button"
-              [disabled]="session.pending()"
-              (click)="logout()"
-            >
-              ออกจากระบบ
-            </button>
-          </div>
-        </header>
-      }
-      <main
-        id="main-content"
-        tabindex="-1"
-        class="mx-auto w-full max-w-xl flex-1 px-5 py-10 sm:px-10 sm:py-14"
-      >
-        <section class="surface-card p-6 sm:p-9">
-          <span
-            class="mb-5 flex h-13 w-13 items-center justify-center rounded-2xl bg-brand-50 text-primary"
-            ><wms-icon name="lock"
-          /></span>
-          <p class="eyebrow mb-2">ACCOUNT SECURITY</p>
-          <h1 class="text-3xl font-semibold">เปลี่ยนรหัสผ่าน</h1>
-          <p class="mt-2 leading-7 text-muted">
-            {{
-              forced()
-                ? 'นี่คือการเข้าสู่ระบบครั้งแรก กรุณาตั้งรหัสผ่านใหม่ก่อนดำเนินการต่อ'
-                : 'ตั้งรหัสผ่านใหม่สำหรับบัญชีของคุณ'
-            }}
-          </p>
-          <form class="mt-8 space-y-5" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-            <div>
-              <label class="field-label" for="currentPassword">รหัสผ่านปัจจุบัน</label>
-              <div class="input-wrap">
-                <wms-icon name="lock" /><input
-                  id="currentPassword"
-                  [type]="showCurrentPassword() ? 'text' : 'password'"
-                  formControlName="currentPassword"
-                  autocomplete="current-password"
-                />
-                <button type="button" class="password-toggle"
-                  [attr.aria-label]="showCurrentPassword() ? 'ซ่อนรหัสผ่านปัจจุบัน' : 'แสดงรหัสผ่านปัจจุบัน'"
-                  [attr.aria-pressed]="showCurrentPassword()"
-                  (click)="showCurrentPassword.set(!showCurrentPassword())">
-                  <wms-icon [name]="showCurrentPassword() ? 'eyeOff' : 'eye'" />
-                </button>
-              </div>
-            </div>
-            <div>
-              <label class="field-label" for="newPassword">รหัสผ่านใหม่</label>
-              <div class="input-wrap">
-                <wms-icon name="lock" /><input
-                  id="newPassword"
-                  [type]="showNewPassword() ? 'text' : 'password'"
-                  formControlName="newPassword"
-                  autocomplete="new-password"
-                  aria-describedby="password-hint"
-                />
-                <button type="button" class="password-toggle"
-                  [attr.aria-label]="showNewPassword() ? 'ซ่อนรหัสผ่านใหม่' : 'แสดงรหัสผ่านใหม่'"
-                  [attr.aria-pressed]="showNewPassword()"
-                  (click)="showNewPassword.set(!showNewPassword())">
-                  <wms-icon [name]="showNewPassword() ? 'eyeOff' : 'eye'" />
-                </button>
-              </div>
-              <p id="password-hint" class="mt-2 text-xs text-muted">
-                ใช้ 12–128 ตัวอักษร และต้องต่างจากรหัสผ่านปัจจุบัน
-              </p>
-            </div>
-            <div>
-              <label class="field-label" for="confirmPassword">ยืนยันรหัสผ่านใหม่</label>
-              <div class="input-wrap">
-                <wms-icon name="lock" /><input
-                  id="confirmPassword"
-                  [type]="showConfirmPassword() ? 'text' : 'password'"
-                  formControlName="confirmPassword"
-                  autocomplete="new-password"
-                />
-                <button type="button" class="password-toggle"
-                  [attr.aria-label]="showConfirmPassword() ? 'ซ่อนยืนยันรหัสผ่านใหม่' : 'แสดงยืนยันรหัสผ่านใหม่'"
-                  [attr.aria-pressed]="showConfirmPassword()"
-                  (click)="showConfirmPassword.set(!showConfirmPassword())">
-                  <wms-icon [name]="showConfirmPassword() ? 'eyeOff' : 'eye'" />
-                </button>
-              </div>
-            </div>
-            @if (error()) {
-              <div role="alert" class="alert-error">
-                <wms-icon name="info" /><span>{{ error() }}</span>
-              </div>
-            }
-            @if (success()) {
-              <div role="status" class="alert-success">
-                <wms-icon name="check" /><span>{{ success() }}</span>
-              </div>
-            }
-            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              @if (!forced()) {
-                <button type="button" class="secondary-button" (click)="cancel()">ยกเลิก</button>
-              }
-              <button type="submit" class="primary-button" [disabled]="session.pending()">
-                {{ session.pending() ? 'กำลังบันทึก…' : 'เปลี่ยนรหัสผ่าน' }}
-              </button>
-            </div>
-          </form>
-        </section>
-      </main>
-    </div>
-  `,
+  templateUrl: './password.html',
 })
 export class Password {
   readonly session = inject(SessionService);

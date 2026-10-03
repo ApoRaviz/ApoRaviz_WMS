@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { SessionService } from '../../core/session';
+import { SessionService } from '../../core/auth/session.service';
 import { Icon } from '../../shared/icon';
-import { Topbar } from '../../shared/topbar';
+import { Topbar } from '../../core/layout/topbar';
 
 @Component({
   selector: 'wms-projects',

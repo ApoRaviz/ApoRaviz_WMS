@@ -1,0 +1,294 @@
+<div class="flex min-h-dvh flex-col bg-canvas">
+  <wms-topbar />
+  <main id="main-content" tabindex="-1" class="page-shell">
+    <div class="flex flex-wrap items-end justify-between gap-5">
+      <div>
+        <p class="eyebrow mb-2">ADMINISTRATION</p>
+        <h1 class="text-3xl font-semibold sm:text-4xl">จัดการระบบ</h1>
+        <p class="mt-2 text-muted">บัญชีผู้ใช้งาน สมาชิกโปรเจกต์ และสิทธิ์ของแต่ละบทบาท</p>
+      </div>
+      @if (tab() === 'users' && !editing()) {
+        <button class="primary-button" type="button" (click)="startCreate()">
+          <wms-icon name="plus" />เพิ่มผู้ใช้งาน
+        </button>
+      }
+    </div>
+    <div class="mt-8 flex gap-2 border-b border-line" role="tablist" aria-label="ส่วนจัดการระบบ">
+      <button
+        type="button"
+        class="tab-button"
+        role="tab"
+        [attr.aria-selected]="tab() === 'users'"
+        (click)="tab.set('users')"
+      >
+        ผู้ใช้งาน</button
+      ><button
+        type="button"
+        class="tab-button"
+        role="tab"
+        [attr.aria-selected]="tab() === 'roles'"
+        (click)="tab.set('roles')"
+      >
+        สิทธิ์ตามบทบาท
+      </button>
+    </div>
+    @if (error()) {
+      <div role="alert" class="alert-error mt-5">
+        <wms-icon name="info" /><span>{{ error() }}</span>
+      </div>
+    }
+    @if (success()) {
+      <div role="status" class="alert-success mt-5">
+        <wms-icon name="check" /><span>{{ success() }}</span>
+      </div>
+    }
+    @if (loading()) {
+      <p role="status" class="py-12 text-center text-muted">กำลังโหลดข้อมูล…</p>
+    } @else if (tab() === 'users') {
+      @if (editing()) {
+        <section id="user-editor" tabindex="-1" class="surface-card mt-6 p-5 sm:p-8">
+          <div class="flex items-center justify-between gap-4">
+            <h2 class="text-xl font-semibold">
+              {{ draft().id ? 'แก้ไขผู้ใช้งาน' : 'เพิ่มผู้ใช้งาน' }}
+            </h2>
+            <button
+              class="icon-button"
+              type="button"
+              aria-label="ปิดแบบฟอร์ม"
+              (click)="closeEditor()"
+            >
+              <wms-icon name="close" />
+            </button>
+          </div>
+          <form class="mt-6 space-y-6" (ngSubmit)="userForm.valid && saveUser()" #userForm="ngForm">
+            <div class="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label for="admin-username" class="field-label">ชื่อผู้ใช้</label>
+                <div class="input-wrap">
+                  <input
+                    id="admin-username"
+                    name="username"
+                    [(ngModel)]="draft().username"
+                    #usernameControl="ngModel"
+                    required
+                    [pattern]="usernamePattern"
+                    maxlength="50"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    [attr.aria-invalid]="
+                      usernameControl.invalid && (usernameControl.dirty || usernameControl.touched)
+                    "
+                    [attr.aria-describedby]="
+                      usernameControl.invalid && (usernameControl.dirty || usernameControl.touched)
+                        ? 'username-hint username-error'
+                        : 'username-hint'
+                    "
+                    [readOnly]="!!draft().id"
+                    autocomplete="off"
+                  />
+                </div>
+                <p id="username-hint" class="mt-2 text-xs text-muted">
+                  ใช้ภาษาอังกฤษ ตัวเลข หรือ . _ - จำนวน 3–50 ตัวอักษร
+                </p>
+                @if (
+                  usernameControl.invalid && (usernameControl.dirty || usernameControl.touched)
+                ) {
+                  <p id="username-error" class="field-message">
+                    Username ต้องเป็นภาษาอังกฤษ ตัวเลข หรือ . _ - จำนวน 3–50 ตัวอักษรเท่านั้น
+                  </p>
+                }
+              </div>
+              <div>
+                <label for="admin-name" class="field-label">ชื่อที่แสดง</label>
+                <div class="input-wrap">
+                  <input
+                    id="admin-name"
+                    name="name"
+                    [(ngModel)]="draft().name"
+                    required
+                    maxlength="100"
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+            </div>
+            @if (!draft().id) {
+              <div>
+                <label for="admin-password" class="field-label">รหัสผ่านชั่วคราว</label>
+                <div class="input-wrap">
+                  <input
+                    id="admin-password"
+                    name="password"
+                    type="password"
+                    [(ngModel)]="draft().password"
+                    required
+                    minlength="12"
+                    maxlength="128"
+                    autocomplete="new-password"
+                  />
+                </div>
+                <p class="mt-2 text-xs text-muted">
+                  ผู้ใช้ต้องเปลี่ยนรหัสผ่านเมื่อเข้าสู่ระบบครั้งแรก
+                </p>
+              </div>
+            }
+            <div class="flex flex-wrap gap-6">
+              <label class="check-label"
+                ><input type="checkbox" name="isAdmin" [(ngModel)]="draft().isAdmin" />
+                ผู้ดูแลระบบบริษัท</label
+              >
+              @if (draft().id) {
+                <label class="check-label"
+                  ><input type="checkbox" name="active" [(ngModel)]="draft().active" />
+                  เปิดใช้งานบัญชี</label
+                >
+              }
+            </div>
+            <fieldset>
+              <legend class="font-semibold">สมาชิกโปรเจกต์</legend>
+              <p class="mt-1 text-sm text-muted">
+                หนึ่งบทบาทต่อหนึ่งโปรเจกต์ เว้นว่างหากไม่ต้องการมอบหมาย
+              </p>
+              <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                @for (project of projects(); track project.id) {
+                  <label class="membership-row"
+                    ><span
+                      ><strong>{{ project.name }}</strong
+                      ><small>{{ project.code }}</small></span
+                    ><select
+                      [attr.aria-label]="'บทบาทในโปรเจกต์ ' + project.name"
+                      [ngModel]="membershipRole(project.id)"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="setMembershipRole(project.id, $event)"
+                    >
+                      <option value="">ไม่ได้มอบหมาย</option>
+                      @for (role of roles(); track role.id) {
+                        <option [value]="role.id">{{ role.name }}</option>
+                      }
+                    </select></label
+                  >
+                }
+              </div>
+            </fieldset>
+            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button class="secondary-button" type="button" (click)="closeEditor()">ยกเลิก</button
+              ><button
+                class="primary-button"
+                type="submit"
+                [disabled]="saving() || userForm.invalid"
+              >
+                {{ saving() ? 'กำลังบันทึก…' : 'บันทึกผู้ใช้งาน' }}
+              </button>
+            </div>
+          </form>
+        </section>
+      }
+      @if (resetTarget()) {
+        <section id="reset-editor" tabindex="-1" class="surface-card mt-6 p-5 sm:p-8">
+          <h2 class="text-xl font-semibold">รีเซ็ตรหัสผ่าน: {{ resetTarget()?.name }}</h2>
+          <p class="mt-2 text-sm text-muted">
+            การบันทึกจะยกเลิกเซสชันทั้งหมดของผู้ใช้นี้
+            และบังคับให้เปลี่ยนรหัสผ่านเมื่อเข้าสู่ระบบครั้งถัดไป
+          </p>
+          <form class="mt-5 space-y-5" (ngSubmit)="submitReset()">
+            <div>
+              <label for="reset-password" class="field-label">รหัสผ่านชั่วคราวใหม่</label>
+              <div class="input-wrap">
+                <input
+                  id="reset-password"
+                  name="resetPassword"
+                  type="password"
+                  [(ngModel)]="resetDraft"
+                  required
+                  minlength="12"
+                  maxlength="128"
+                  autocomplete="new-password"
+                />
+              </div>
+            </div>
+            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button class="secondary-button" type="button" (click)="cancelReset()">ยกเลิก</button
+              ><button
+                class="primary-button"
+                type="submit"
+                [disabled]="saving() || resetDraft.length < 12 || resetDraft.length > 128"
+              >
+                ยืนยันรีเซ็ตรหัสผ่าน
+              </button>
+            </div>
+          </form>
+        </section>
+      }
+      <div class="mt-6 grid gap-4">
+        @for (user of users(); track user.id) {
+          <article class="surface-card p-5">
+            <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h2 class="font-semibold">{{ user.name }}</h2>
+                  @if (user.isAdmin) {
+                    <span class="role-badge">ผู้ดูแลระบบ</span>
+                  }
+                  <span class="status-badge" [class.inactive]="!user.active">{{
+                    user.active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'
+                  }}</span>
+                </div>
+                <p class="mt-1 text-sm text-muted">
+                  &#64;{{ user.username }} · {{ membershipSummary(user) }}
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" class="secondary-button text-sm" (click)="editUser(user)">
+                  แก้ไข</button
+                ><button
+                  type="button"
+                  class="secondary-button text-sm"
+                  [disabled]="user.id === session.user()?.id"
+                  (click)="startReset(user)"
+                >
+                  รีเซ็ตรหัสผ่าน
+                </button>
+              </div>
+            </div>
+          </article>
+        } @empty {
+          <div class="empty-state">ยังไม่มีผู้ใช้งาน</div>
+        }
+      </div>
+    } @else {
+      <section class="mt-6">
+        <div class="surface-card p-5 sm:p-8">
+          <h2 class="text-xl font-semibold">สิทธิ์ตามบทบาท</h2>
+          <p class="mt-2 leading-7 text-muted">
+            การเป็นผู้ดูแลระบบบริษัทกำหนดแยกจากสิทธิ์โปรเจกต์ รายการด้านล่างใช้ร่วมกันทุกโปรเจกต์
+          </p>
+          <div class="mt-6 grid gap-4">
+            @for (role of roles(); track role.id) {
+              <div class="role-row">
+                <div>
+                  <h3 class="font-semibold">{{ role.name }}</h3>
+                  <p class="text-xs text-muted">{{ role.id }}</p>
+                </div>
+                <label class="check-label"
+                  ><input
+                    type="checkbox"
+                    [checked]="hasPermission(role, 'workspace.view')"
+                    (change)="togglePermission(role, 'workspace.view', $event)"
+                  />
+                  ดูพื้นที่ทำงาน (workspace.view)</label
+                ><button
+                  class="secondary-button"
+                  type="button"
+                  [disabled]="savingRole() === role.id"
+                  (click)="saveRole(role)"
+                >
+                  {{ savingRole() === role.id ? 'กำลังบันทึก…' : 'บันทึกสิทธิ์' }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
+  </main>
+</div>

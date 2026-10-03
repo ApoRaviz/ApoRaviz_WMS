@@ -4,7 +4,7 @@
 
 The owner requires clear, maintainable structure following established Angular and NestJS practices. MVP reduces feature scope, not engineering quality. Apply these rules to new code and code being refactored; existing violations are not precedents to copy.
 
-Read `docs/HANDOFF.md` before resuming work. Respect the owner's current pause; recording rules does not authorize resuming implementation.
+Read `docs/HANDOFF.md` before resuming work. The owner's current instructions determine whether implementation is active or paused.
 
 ## Backend
 

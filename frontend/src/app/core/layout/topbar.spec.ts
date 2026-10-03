@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { SessionService } from '../core/session';
+import { SessionService } from '../auth/session.service';
 import { Topbar } from './topbar';
 
 describe('Topbar logout failure', () => {

@@ -11,7 +11,7 @@ User requested a maintainable Nest backend after identifying the monolithic impl
 - Services control transaction boundaries via existing Database.transaction. Repository methods accept PoolClient when joining a transaction; every query in one operation must use the same client. Preserve synchronous throttle reservations, row locks, advisory admin lock, credential/session revalidation, session revocation, and deterministic concurrency tests.
 - Shared domain types in common/; Database connection/lifecycle provider separate. Schema migration/bootstrap SQL may remain with database infrastructure. Avoid generic base services/repositories, unnecessary interfaces or circular module imports.
 - Keep createApp({testing:true}) and Database test imports compatible; existing SQL schema/migration and all11 HTTP tests remain acceptance baseline. Do not rewrite tests to weaken status/error/race expectations.
-- No frontend edits; existing local frontend/angular.json change belongs to user.
+- This backend plan leaves frontend behavior unchanged. On 2026-10-03 the owner resumed both layer refactors; frontend implementation follows the companion `2026-10-03-frontend-layers.md` plan. The existing local frontend/angular.json change belongs to the user.
 
 ## Work plan
 

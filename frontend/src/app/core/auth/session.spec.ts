@@ -2,7 +2,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
-import { apiErrorMessage, Session, SessionService } from './session';
+import { apiErrorMessage } from '../http/api-error';
+import type { Session } from './session.model';
+import { SessionService } from './session.service';
 
 const activeSession: Session = {
   user: {

@@ -1,5 +1,10 @@
 import { Routes } from '@angular/router';
-import { requireAdmin, requireGuest, requirePasswordChanged, requireSession } from './core/guards';
+import {
+  requireAdmin,
+  requireGuest,
+  requirePasswordChanged,
+  requireSession,
+} from './core/auth/guards';
 
 export const routes: Routes = [
   {

@@ -39,6 +39,7 @@ docker compose up -d --wait
 .\backend.cmd run build
 .\wms.cmd run test:ci
 .\wms.cmd run build
+.\.tools\node-v24.21.0-win-x64\node.exe scripts/check-layers.mjs --frontend
 # เปิด Angular ที่ localhost:4200 และหยุด API port 3000 ก่อน
 # ต้องมี Microsoft Edge; runner เปิด API ทดสอบให้เอง
 .\e2e.cmd
@@ -50,6 +51,7 @@ Backend tests และ browser tests ใช้ schema ชั่วคราว�
 
 ## เอกสาร
 
+- [โครงสร้าง Backend/Frontend และขอบเขตหน้าที่](docs/ARCHITECTURE.md)
 - [Requirement](docs/Prompt%20%E2%80%94%20WMS%20MVP%20for%20Small%20Warehouse.md)
 - [แบบ Module 1](docs/superpowers/specs/2026-09-14-module1-access-design.md)
 - [แผน Module 1](docs/superpowers/plans/2026-09-14-module1-access.md)

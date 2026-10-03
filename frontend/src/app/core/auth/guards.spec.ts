@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { requireAdmin, requireGuest, requirePasswordChanged, requireSession } from './guards';
-import { SessionService } from './session';
+import { SessionService } from './session.service';
 
 describe('route guards', () => {
   const router = { parseUrl: (url: string) => ({ url }) };

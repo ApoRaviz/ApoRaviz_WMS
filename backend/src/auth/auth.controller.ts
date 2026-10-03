@@ -1,43 +1,65 @@
-import { Body, Controller, Get, Inject, Post, Req, Res } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from "@nestjs/common";
 import type { Request, Response } from "express";
-import type { AccessService } from "../main";
-
-@Controller()
+import { AuthService } from "./auth.service";
+import { UserRow } from "../users/user.entity";
+import {
+  LoginDto,
+  LoginPipe,
+  ChangePasswordDto,
+  ChangePasswordPipe,
+} from "./auth.dto";
+import {
+  AllowPasswordGate,
+  CurrentUser,
+  cookieName,
+  parseCookie,
+  setSessionCookie,
+} from "./auth.http";
+import { SessionGuard } from "./auth.guards";
+@Controller("auth")
 export class AuthController {
-  constructor(
-    @Inject("ACCESS_SERVICE") private readonly access: AccessService,
-  ) {}
-
-  @Get("health")
-  health() {
-    return this.access.health();
-  }
-
-  @Post("auth/login")
-  login(
+  constructor(@Inject(AuthService) private readonly auth: AuthService) {}
+  @Post("login")
+  async login(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-    @Body() body: unknown,
+    @Body(LoginPipe) input: LoginDto,
   ) {
-    return this.access.login(req, res, body);
+    const result = await this.auth.login(input, req.ip);
+    setSessionCookie(res, result.token);
+    return this.auth.session(result.user);
   }
-
-  @Get("auth/me")
-  me(@Req() req: Request) {
-    return this.access.me(req);
+  @Get("me")
+  @UseGuards(SessionGuard)
+  @AllowPasswordGate()
+  me(@CurrentUser() user: UserRow) {
+    return this.auth.session(user);
   }
-
-  @Post("auth/logout")
-  logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    return this.access.logout(req, res);
+  @Post("logout")
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const result = await this.auth.logout(parseCookie(req));
+    res.clearCookie(cookieName, { path: "/" });
+    return result;
   }
-
-  @Post("auth/password")
-  password(
+  @Post("password")
+  @UseGuards(SessionGuard)
+  @AllowPasswordGate()
+  async password(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-    @Body() body: unknown,
+    @Body(ChangePasswordPipe) input: ChangePasswordDto,
   ) {
-    return this.access.password(req, res, body);
+    const result = await this.auth.changePassword(parseCookie(req)!, input);
+    setSessionCookie(res, result.token);
+    return this.auth.session(result.user);
   }
 }

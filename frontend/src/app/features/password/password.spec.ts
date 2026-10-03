@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { SessionService } from '../../core/session';
+import { SessionService } from '../../core/auth/session.service';
 import { Password } from './password';
 
 describe('forced password page logout failure', () => {

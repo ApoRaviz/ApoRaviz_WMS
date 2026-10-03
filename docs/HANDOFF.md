@@ -1,4 +1,27 @@
-# บันทึกพักงาน — 2026-09-14
+# สถานะล่าสุด — 2026-10-03
+
+ผู้ใช้สั่งเริ่มทำต่อและอนุมัติให้ทำตามแผน โดยใช้ brainstorming ตามเดิม ข้อความพักงานด้านล่างเป็นประวัติเดิม ไม่ใช่คำสั่งปัจจุบัน
+
+## ผลการ refactor Module 1
+
+- ทำงานบน branch `refactor/backend-layers` จาก `0c2da4d`
+- Backend แยก Auth/Users/Roles/Projects เป็น Controller → Service → Repository พร้อม modules, DTO pipes และ guards; `main.ts` เหลือ bootstrap และ export `createApp` สำหรับ tests
+- รักษา transaction client, locks, administrator revalidation, throttle reservation และ session revocation เดิม
+- Frontend แยก Auth API/Session state, Users/Roles/Projects services และ models; ย้าย topbar ที่รู้ session ไป `core/layout`; แยก template ขนาดใหญ่จาก component
+- ดูรายละเอียดใน [ARCHITECTURE.md](ARCHITECTURE.md) และ [แผน Frontend](superpowers/plans/2026-10-03-frontend-layers.md)
+- Baseline: Backend 11/11, Frontend 16/16; หลัง refactor Backend 13/13, Frontend 22/22; builds ทั้งสองส่วนและ source-boundary checks ผ่าน
+- Browser flows ผ่าน 8/8 บน Edge ด้วย schema ทดสอบแยก ครอบคลุม auth/project/user CRUD/role/password reset/logout
+- Review พบลำดับส่ง cookie เมื่อโหลด project catalog ล้มเหลวเปลี่ยนไป แก้ให้ตรงของเดิม และเพิ่ม regression tests 2 รายการที่ล้มเหลวก่อนแก้และผ่านหลังแก้
+- ไม่เปลี่ยน schema/dependencies/ข้อมูลจริง/รหัสผ่าน ไม่แตะการแก้ `frontend/angular.json` ของผู้ใช้ และไม่รวมไฟล์นี้ใน commit
+- ปัญหา spinner ที่เคยรายงานยังไม่ได้พบซ้ำ จึงไม่ได้สรุปว่าแก้สาเหตุแล้ว; flow เพิ่มผู้ใช้ผ่าน browser tests
+
+## ขั้นถัดไป
+
+ให้เจ้าของงานทดสอบ Module 1 ก่อนเริ่มโมดูลคลัง ใช้บัญชีเดิมและ electric-violet UI เดิม ไม่มี migration หรือ reset password ที่ต้องทำ
+
+---
+
+# ประวัติการพักงาน — 2026-09-14
 
 ผู้ใช้สั่งพักเพราะ token ใกล้หมด ห้ามทำต่อจนกว่าผู้ใช้จะให้เริ่มใหม่
 

@@ -1,15 +1,21 @@
-import { Controller, Get, Inject, Param, Req } from "@nestjs/common";
-import type { Request } from "express";
-import type { AccessService } from "../main";
-
+import { Controller, Get, Inject, Param, UseGuards } from "@nestjs/common";
+import { CurrentUser } from "../auth/auth.http";
+import { SessionGuard, AdminGuard } from "../auth/auth.guards";
+import { UserRow } from "../users/user.entity";
+import { ProjectsService } from "./projects.service";
 @Controller()
+@UseGuards(SessionGuard)
 export class ProjectsController {
   constructor(
-    @Inject("ACCESS_SERVICE") private readonly access: AccessService,
+    @Inject(ProjectsService) private readonly projects: ProjectsService,
   ) {}
-
   @Get("projects/:id/workspace")
-  workspace(@Req() req: Request, @Param("id") id: string) {
-    return this.access.workspace(req, id);
+  workspace(@CurrentUser() user: UserRow, @Param("id") id: string) {
+    return this.projects.workspace(user, id);
+  }
+  @Get("admin/projects")
+  @UseGuards(AdminGuard)
+  list() {
+    return this.projects.list();
   }
 }

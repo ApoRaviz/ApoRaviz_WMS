@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { apiErrorMessage, SessionService } from '../../core/session';
+import { apiErrorMessage } from '../../core/http/api-error';
+import { SessionService } from '../../core/auth/session.service';
 import { Brand } from '../../shared/brand';
 import { Icon } from '../../shared/icon';
 
