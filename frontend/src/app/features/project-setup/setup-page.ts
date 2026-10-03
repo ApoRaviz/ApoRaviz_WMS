@@ -63,6 +63,7 @@ export class SetupPage {
   private id = '';
   private generation = 0;
   private resolveLeave?: (answer: boolean) => void;
+  readonly beforeLogout = () => this.confirmLeave();
   sectionTitle() {
     return this.tabs.find((tab) => tab.id === this.section())?.name;
   }
@@ -147,7 +148,7 @@ export class SetupPage {
         ),
       );
       this.success.set('บันทึกการตั้งค่าเรียบร้อยแล้ว');
-      void this.session.restore();
+      await this.session.restore();
       return true;
     } catch (error) {
       this.error.set(apiErrorMessage(error, 'บันทึกไม่สำเร็จ ข้อมูลที่กรอกยังอยู่'));
@@ -198,7 +199,7 @@ export class SetupPage {
     try {
       this.apply(await this.api.status(d.project.id, d.project.version, status));
       this.success.set('เปลี่ยนสถานะเรียบร้อยแล้ว');
-      void this.session.restore();
+      await this.session.restore();
     } catch (error) {
       this.error.set(apiErrorMessage(error));
       this.conflict.set(

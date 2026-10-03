@@ -1,5 +1,19 @@
 # สถานะล่าสุด — 2026-10-03
 
+## Project Setup — ทำตามแบบที่ผู้ใช้อนุมัติ
+
+- Branch `feat/project-setup` จาก `a181cff`; implementation `61943c3` ทำครบหน้า Admin list/สร้างฉบับร่าง และหน้าตั้งค่า 5 หมวด ข้อมูลทั่วไป/คลัง/กฎ/สมาชิก/ประวัติ
+- Admin เข้า `จัดการระบบ → โปรเจกต์`; Manager ใช้ปุ่มตั้งค่าบน Project ของตน แก้ได้เฉพาะชื่อ/คำอธิบาย/สี/คลังเริ่มต้น Backend ตรวจขอบเขตและสิทธิ์ซ้ำด้วย
+- Client/Warehouse เป็นข้อมูลกลาง มีหน้าเตรียมข้อมูลแยก; Project–Warehouse many-to-many; คลังเดียวใช้ร่วมหลาย Project ได้ สมาชิกยังใช้ชุดเดียวกับหน้าจัดการผู้ใช้
+- มี audit ค่าเดิม/ใหม่ ผู้แก้จริง และ version กันแก้ทับ; ข้อมูลและประวัติบันทึกใน transaction เดียว รวมการแก้สมาชิกจากหน้าเดิมด้วย; ฟอร์มมี Save/Discard/Stay และคงค่าหากบันทึกล้มเหลว
+- Backend build + 25/25, Frontend 26/26 + build, boundaries และ Edge รอบสุดท้าย 11/11 ผ่าน รวม migration รักษาข้อมูลเดิมและ regression จาก review ดู [QA/ผลล่าสุดและวิธีลอง](qa/2026-10-03-project-setup.md)
+- Review แก้ stale Users form เขียนสมาชิกทับ Setup โดยเพิ่ม `expectedMemberships` ใน User PATCH และปุ่มทิ้ง/โหลดล่าสุด; แก้ Logout ให้ถามข้อมูลค้างก่อน revoke session มี regression RED→GREEN; หลัง deploy ให้ refresh หน้าที่เปิดค้างไว้
+- ข้อเล็กที่เลื่อนไว้: ประวัติที่ Manager ดูอาจแสดง ID ของ Client/คลังเดิมที่ไม่อยู่ในรายการปัจจุบัน แทนชื่อ; ข้อมูลประวัติยังเก็บครบ
+- ต้อง restart Backend เพื่อ apply migration `002_project_setup.sql` อัตโนมัติ (`.\backend.cmd run build` แล้ว `.\backend.cmd start` หรือ `npm run build`/`npm start` ใน backend) คง ID/บัญชี/สมาชิก/Project เดิม ไม่มี reset; เตรียมคลังจริงผ่านหน้าข้อมูลกลางก่อนใช้ Setup
+- รอบนี้ยังไม่เชื่อม Inbound: กฎแสดง “เตรียมไว้สำหรับโมดูลปฏิบัติงาน”; `first_transaction_at` และ usage flags เป็นจุดรองรับภายในที่โมดูลธุรกรรมในอนาคตต้องอัปเดตพร้อมรายการ ไม่ใช่ stock integration ที่ทำแล้ว
+- เก็บ branch ไว้ให้เจ้าของลองใน checkout เดิม ไม่ merge/push; `frontend/angular.json` เป็นการแก้ของผู้ใช้และไม่รวม commit; ทดสอบ API3002/UI4202 ไม่รบกวน 3000/4200
+- งานถัดไป: เจ้าของทดสอบ Project Setup ก่อนพัฒนาโมดูลปฏิบัติงานต่อ; แผน Inbound ด้านล่างเป็นประวัติ ไม่ใช่งานที่เริ่มต่ออัตโนมัติ
+
 ## แก้เคอร์เซอร์หมุนเมื่อชี้ปุ่มบันทึกผู้ใช้งาน
 
 - วิดีโอที่ผู้ใช้ส่งแสดงวงกลมรอตรงเมาส์บนปุ่ม “บันทึกผู้ใช้งาน” ซึ่งยัง disabled และข้อความยังไม่ใช่ “กำลังบันทึก…”

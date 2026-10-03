@@ -1,4 +1,4 @@
-<wms-topbar />
+<wms-topbar [beforeLogout]="beforeLogout" />
 <main id="main-content" tabindex="-1" class="page-shell setup-shell">
   <a [routerLink]="session.user()?.isAdmin ? '/admin/projects' : '/projects'" class="nav-link"
     >← {{ session.user()?.isAdmin ? 'จัดการโปรเจกต์' : 'เลือกโปรเจกต์' }}</a

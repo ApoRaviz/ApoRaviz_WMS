@@ -178,6 +178,19 @@ test('admin creates references and draft, saves each section, handles dirty chan
   await page.getByRole('button', { name: 'คลังสินค้า', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/project-setup-mobile.png', fullPage: true });
+  await page.getByRole('button', { name: 'ข้อมูลทั่วไป', exact: true }).click();
+  await page.getByLabel('คำอธิบาย', { exact: true }).fill('บันทึกก่อนออกจากระบบ');
+  await page.getByRole('button', { name: 'ออกจากระบบ', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  expect((await page.request.get('/api/auth/me')).status()).toBe(200);
+  await page.keyboard.press('Escape');
+  await expect(page.getByLabel('คำอธิบาย', { exact: true })).toHaveValue('บันทึกก่อนออกจากระบบ');
+  await page.getByRole('button', { name: 'ออกจากระบบ', exact: true }).click();
+  await page.getByRole('button', { name: 'บันทึกก่อนออก' }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  expect((await (await admin.get(`/api/projects/${id}/setup`)).json()).project.description).toBe(
+    'บันทึกก่อนออกจากระบบ',
+  );
   expect(errors).toEqual([]);
 });
 
@@ -213,4 +226,43 @@ test('manager uses own setup without admin access; other project roles and cross
   await login(page, operator.username, operator.password);
   await page.goto(`/projects/${d.project.id}/settings`);
   await expect(page).toHaveURL(/\/projects$/);
+});
+
+test('stale user editor preserves its draft and reloads newer Project memberships', async ({
+  page,
+}) => {
+  const d = await seedProject();
+  const user = await account(d.project.id, 'manager');
+  await login(page);
+  await page.getByRole('link', { name: 'จัดการระบบ', exact: true }).click();
+  await page
+    .locator('article')
+    .filter({ hasText: user.username })
+    .getByRole('button', { name: 'แก้ไข', exact: true })
+    .click();
+  await page.getByLabel('ชื่อที่แสดง', { exact: true }).fill('ชื่อที่แก้ค้างไว้');
+  const current = await (await admin.get(`/api/projects/${d.project.id}/setup`)).json();
+  expect(
+    (
+      await admin.patch(`/api/projects/${d.project.id}/setup/members`, {
+        data: {
+          version: current.project.version,
+          members: [{ userId: user.id, roleId: 'operator' }],
+        },
+      })
+    ).ok(),
+  ).toBeTruthy();
+  await page.getByRole('button', { name: 'บันทึกผู้ใช้งาน', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('สมาชิกโปรเจกต์ถูกแก้ไขแล้ว');
+  await expect(page.getByLabel('ชื่อที่แสดง', { exact: true })).toHaveValue('ชื่อที่แก้ค้างไว้');
+  await page.getByRole('button', { name: 'ทิ้งการแก้ไขและโหลดผู้ใช้ล่าสุด', exact: true }).click();
+  await expect(page.getByLabel('บทบาทในโปรเจกต์ ' + d.project.name, { exact: true })).toHaveValue(
+    'operator',
+  );
+  await page.getByLabel('ชื่อที่แสดง', { exact: true }).fill('บันทึกหลังโหลดใหม่');
+  await page.getByRole('button', { name: 'บันทึกผู้ใช้งาน', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('บันทึกผู้ใช้งานเรียบร้อยแล้ว');
+  expect(
+    (await (await admin.get(`/api/projects/${d.project.id}/setup`)).json()).members[0].roleId,
+  ).toBe('operator');
 });

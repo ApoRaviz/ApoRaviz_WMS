@@ -41,7 +41,13 @@ describe('Feature API contracts', () => {
     expect(await pending).toEqual(response);
   });
   it('encodes a user ID and preserves update failures for the editor', async () => {
-    const input = { name: 'พนักงาน', active: true, isAdmin: false, memberships: [] };
+    const input = {
+      name: 'พนักงาน',
+      active: true,
+      isAdmin: false,
+      memberships: [],
+      expectedMemberships: [],
+    };
     const pending = TestBed.inject(UsersService).updateUser('u/1', input);
     const req = http.expectOne('/api/admin/users/u%2F1');
     expect(req.request.method).toBe('PATCH');

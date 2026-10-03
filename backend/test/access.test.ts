@@ -219,6 +219,7 @@ describe("Module 1 access API", () => {
         active: false,
         isAdmin: false,
         memberships: created.body.memberships,
+        expectedMemberships: created.body.memberships,
       })
       .expect(200);
     await request(app.getHttpServer())
@@ -242,6 +243,7 @@ describe("Module 1 access API", () => {
         active: true,
         isAdmin: false,
         memberships: [],
+        expectedMemberships: [],
       })
       .expect(400);
     await request(app.getHttpServer())
@@ -253,6 +255,7 @@ describe("Module 1 access API", () => {
         active: false,
         isAdmin: true,
         memberships: [],
+        expectedMemberships: [],
       })
       .expect(400);
   });
@@ -331,6 +334,7 @@ describe("Module 1 access API", () => {
           active: false,
           isAdmin: true,
           memberships: [],
+          expectedMemberships: [],
         }),
       request(app.getHttpServer())
         .patch(`/api/admin/users/${firstMe.body.user.id}`)
@@ -341,6 +345,7 @@ describe("Module 1 access API", () => {
           active: false,
           isAdmin: true,
           memberships: [],
+          expectedMemberships: [],
         }),
     ]);
     const winner = results.find((result) => result.status === 200);
@@ -368,6 +373,7 @@ describe("Module 1 access API", () => {
         active: true,
         isAdmin: true,
         memberships: [],
+        expectedMemberships: [],
       })
       .expect(200);
   });

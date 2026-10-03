@@ -301,6 +301,7 @@ describe("Project Setup API", () => {
     );
     await write("patch", `/api/admin/users/${managerId}`, admin, {
       name: target.name,
+      expectedMemberships: target.memberships,
       active: true,
       isAdmin: false,
       memberships: target.memberships.filter(
@@ -355,4 +356,50 @@ describe("Project Setup API", () => {
     expect(after.project).toEqual(d.project);
     expect(after.history).toEqual(d.history);
   });
+  test.each(["add", "change"])(
+    "rejects stale Users membership snapshot after Setup %s",
+    async (operation) => {
+      const d = await create("STALE-" + operation);
+      const member = await user("stale." + operation, "operator");
+      let current = d;
+      if (operation === "change") {
+        current = (
+          await write(
+            "patch",
+            `/api/projects/${d.project.id}/setup/members`,
+            admin,
+            {
+              version: current.project.version,
+              members: [{ userId: member.id, roleId: "manager" }],
+            },
+          ).expect(200)
+        ).body;
+      }
+      const stale = (await read("/api/admin/users")).body.find(
+        (u: { id: string }) => u.id === member.id,
+      );
+      const newer = (
+        await write(
+          "patch",
+          `/api/projects/${d.project.id}/setup/members`,
+          admin,
+          {
+            version: current.project.version,
+            members: [{ userId: member.id, roleId: "operator" }],
+          },
+        ).expect(200)
+      ).body;
+      await write("patch", `/api/admin/users/${member.id}`, admin, {
+        name: "Name-only edit from stale form",
+        active: true,
+        isAdmin: false,
+        memberships: stale.memberships,
+        expectedMemberships: stale.memberships,
+      }).expect(409);
+      const after = await detail(d.project.id);
+      expect(after.members).toEqual(newer.members);
+      expect(after.project.version).toBe(newer.project.version);
+      expect(after.history).toEqual(newer.history);
+    },
+  );
 });

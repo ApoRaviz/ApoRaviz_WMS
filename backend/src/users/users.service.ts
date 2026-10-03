@@ -78,6 +78,22 @@ export class UsersService {
         const target = await this.users.lock(id, client);
         if (!target) fail(404, "User not found");
         const previousMemberships = await this.users.memberships(id, client);
+        const expected = input.expectedMemberships;
+        if (
+          previousMemberships.length !== expected.length ||
+          previousMemberships.some(
+            (membership) =>
+              !expected.some(
+                (entry) =>
+                  entry.projectId === membership.projectId &&
+                  entry.roleId === membership.roleId,
+              ),
+          )
+        )
+          fail(
+            409,
+            "สมาชิกโปรเจกต์ถูกแก้ไขแล้ว กรุณาโหลดข้อมูลล่าสุดก่อนบันทึก",
+          );
         const before = await this.membershipAudit.capture(
           [...previousMemberships, ...input.memberships].map(
             (m) => m.projectId,

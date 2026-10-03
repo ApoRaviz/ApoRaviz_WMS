@@ -102,7 +102,7 @@ test('disabled account loses access on the next request', async ({ page }) => {
   await login(page, user.username, user.password);
   await expect(page).toHaveURL(/\/projects$/);
   expect((await admin.patch(`/api/admin/users/${user.id}`, {
-    data: { name: user.name, active: false, isAdmin: false, memberships },
+    data: { name: user.name, active: false, isAdmin: false, memberships, expectedMemberships: memberships },
   })).ok()).toBeTruthy();
   await page.reload();
   await expect(page).toHaveURL(/\/login$/);

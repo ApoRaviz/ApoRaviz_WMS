@@ -18,6 +18,7 @@ export interface UpdateUserDto {
   active: boolean;
   isAdmin: boolean;
   memberships: Membership[];
+  expectedMemberships: Membership[];
 }
 export interface ResetPasswordDto {
   password: string;
@@ -61,6 +62,7 @@ export class UpdateUserPipe implements PipeTransform<unknown, UpdateUserDto> {
       active: body.active,
       isAdmin: body.isAdmin,
       memberships: validatedMemberships(body.memberships),
+      expectedMemberships: validatedMemberships(body.expectedMemberships),
     };
   }
 }

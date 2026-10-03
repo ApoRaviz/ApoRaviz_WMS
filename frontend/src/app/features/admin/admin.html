@@ -43,6 +43,16 @@
         <wms-icon name="check" /><span>{{ success() }}</span>
       </div>
     }
+    @if (membershipConflict() && editing()) {
+      <button
+        type="button"
+        class="secondary-button mt-4"
+        [disabled]="saving()"
+        (click)="reloadEditedUser()"
+      >
+        ทิ้งการแก้ไขและโหลดผู้ใช้ล่าสุด
+      </button>
+    }
     @if (loading()) {
       <p role="status" class="py-12 text-center text-muted">กำลังโหลดข้อมูล…</p>
     } @else if (tab() === 'users') {

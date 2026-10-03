@@ -26,6 +26,7 @@ export interface UserUpdate {
   active: boolean;
   isAdmin: boolean;
   memberships: Membership[];
+  expectedMemberships: Membership[];
 }
 export interface PasswordReset {
   password: string;

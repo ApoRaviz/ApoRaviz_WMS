@@ -4,6 +4,7 @@ import { ProjectsService } from '../projects/projects.service';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import type { AdminProject } from '../projects/project.model';
 import { apiErrorMessage } from '../../core/http/api-error';
 import type { ManagedUser } from './users/user.model';
@@ -23,6 +24,7 @@ interface UserDraft {
   active: boolean;
   isAdmin: boolean;
   memberships: Membership[];
+  expectedMemberships: Membership[];
 }
 const emptyDraft = (): UserDraft => ({
   username: '',
@@ -31,6 +33,7 @@ const emptyDraft = (): UserDraft => ({
   active: true,
   isAdmin: false,
   memberships: [],
+  expectedMemberships: [],
 });
 
 @Component({
@@ -57,6 +60,7 @@ export class Admin {
   readonly resetTarget = signal<ManagedUser | null>(null);
   resetDraft = '';
   readonly error = signal('');
+  readonly membershipConflict = signal(false);
   readonly success = signal('');
   constructor() {
     void this.load();
@@ -94,6 +98,7 @@ export class Admin {
       active: user.active,
       isAdmin: user.isAdmin,
       memberships: user.memberships.map((item) => ({ ...item })),
+      expectedMemberships: user.memberships.map((item) => ({ ...item })),
     });
     this.editing.set(true);
     this.clearMessages();
@@ -128,6 +133,7 @@ export class Admin {
             active: value.active,
             isAdmin: value.isAdmin,
             memberships: value.memberships,
+            expectedMemberships: value.expectedMemberships,
           })
         : await this.usersApi.createUser({
             username: value.username,
@@ -142,6 +148,25 @@ export class Admin {
       this.draft.set(emptyDraft());
       this.editing.set(false);
       this.success.set('บันทึกผู้ใช้งานเรียบร้อยแล้ว');
+    } catch (error) {
+      this.error.set(apiErrorMessage(error));
+      this.membershipConflict.set(
+        !!value.id && error instanceof HttpErrorResponse && error.status === 409,
+      );
+    } finally {
+      this.saving.set(false);
+    }
+  }
+  async reloadEditedUser(): Promise<void> {
+    const id = this.draft().id;
+    if (!id || this.saving()) return;
+    this.saving.set(true);
+    try {
+      const users = await this.usersApi.listUsers();
+      const user = users.find((item) => item.id === id);
+      if (!user) throw new Error('ไม่พบผู้ใช้');
+      this.users.set(users);
+      this.editUser(user);
     } catch (error) {
       this.error.set(apiErrorMessage(error));
     } finally {
@@ -216,6 +241,7 @@ export class Admin {
     }
   }
   private clearMessages(): void {
+    this.membershipConflict.set(false);
     this.error.set('');
     this.success.set('');
   }
