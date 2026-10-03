@@ -1,5 +1,6 @@
 import { PublicUser } from "../common/models";
 export interface UserRow {
+  // Repository projection: id is the stable public identifier, never the bigint PK.
   id: string;
   username: string;
   name: string;

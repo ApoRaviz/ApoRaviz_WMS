@@ -6,14 +6,13 @@ import { ReferenceItem } from "./setup.model";
 export class ReferenceRepository {
   async create(
     kind: "clients" | "warehouses",
-    id: string,
     input: ReferenceInput,
     c: PoolClient,
   ): Promise<ReferenceItem> {
     return (
       await c.query<ReferenceItem>(
-        `INSERT INTO ${kind}(id,code,name) VALUES($1,$2,$3) RETURNING id,code,name`,
-        [id, input.code, input.name],
+        `INSERT INTO ${kind}(code,name) VALUES($1,$2) RETURNING public_id id,code,name`,
+        [input.code, input.name],
       )
     ).rows[0];
   }

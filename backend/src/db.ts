@@ -37,6 +37,7 @@ export class Database {
     for (const [version, file] of [
       [1, "001_module1.sql"],
       [2, "002_project_setup.sql"],
+      [3, "003_internal_bigint_ids.sql"],
     ] as const) {
       const sql = await readFile(
         resolve(__dirname, "../migrations", file),
@@ -67,8 +68,8 @@ export class Database {
     );
     if (!exists.rowCount)
       await this.pool.query(
-        "INSERT INTO users(id,username,name,password_hash,is_admin) VALUES ($1,$2,$3,$4,true)",
-        [randomUUID(), username, name, await hashPassword(password)],
+        "INSERT INTO users(username,name,password_hash,is_admin) VALUES ($1,$2,$3,true) ON CONFLICT (lower(username)) DO NOTHING",
+        [username, name, await hashPassword(password)],
       );
   }
 

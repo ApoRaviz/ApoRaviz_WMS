@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { randomUUID } from "node:crypto";
 import { Database } from "../db";
 import { ManagedUser } from "../common/models";
 import { databaseErrorCode, fail } from "../common/errors";
@@ -32,19 +31,25 @@ export class UsersService {
     );
   }
   async create(input: CreateUserDto, actorId: string): Promise<ManagedUser> {
-    const id = randomUUID();
+    let id: string;
     try {
-      await this.db.transaction(async (client) => {
+      id = await this.db.transaction(async (client) => {
         await this.users.lockAdministrators(client);
         const actor = await this.users.lock(actorId, client);
         if (!actor?.active || !actor.is_admin || actor.must_change_password)
           fail(403, "Administrator access required");
+        if (
+          !(await this.users.projectsExist(
+            input.memberships.map((m) => m.projectId),
+            client,
+          ))
+        )
+          fail(400, "Invalid membership");
         const before = await this.membershipAudit.capture(
           input.memberships.map((m) => m.projectId),
           client,
         );
-        await this.users.create(
-          id,
+        const id = await this.users.create(
           input.username,
           input.name,
           await hashPassword(input.password),
@@ -53,6 +58,7 @@ export class UsersService {
         );
         await this.users.addMemberships(id, input.memberships, client);
         await this.membershipAudit.record(actor, before, client);
+        return id;
       });
     } catch (error: unknown) {
       if (databaseErrorCode(error) === "23505")
@@ -77,6 +83,13 @@ export class UsersService {
           fail(403, "Administrator access required");
         const target = await this.users.lock(id, client);
         if (!target) fail(404, "User not found");
+        if (
+          !(await this.users.projectsExist(
+            input.memberships.map((m) => m.projectId),
+            client,
+          ))
+        )
+          fail(400, "Invalid membership");
         const previousMemberships = await this.users.memberships(id, client);
         const expected = input.expectedMemberships;
         if (

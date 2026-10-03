@@ -19,7 +19,7 @@ export class SetupRepository {
   async actor(id: string, c: PoolClient): Promise<SetupActor | undefined> {
     return (
       await c.query<SetupActor>(
-        "SELECT id,name,is_admin,active,must_change_password FROM users WHERE id=$1 FOR UPDATE",
+        "SELECT public_id id,name,is_admin,active,must_change_password FROM users WHERE public_id=$1 FOR UPDATE",
         [id],
       )
     ).rows[0];
@@ -28,7 +28,7 @@ export class SetupRepository {
     return Boolean(
       (
         await c.query(
-          "SELECT 1 FROM memberships WHERE project_id=$1 AND user_id=$2 AND role_id='manager'",
+          "SELECT 1 FROM memberships WHERE project_id=(SELECT id FROM projects WHERE public_id=$1) AND user_id=(SELECT id FROM users WHERE public_id=$2) AND role_id='manager'",
           [id, actorId],
         )
       ).rowCount,
@@ -40,7 +40,7 @@ export class SetupRepository {
   ): Promise<ReferenceItem[]> {
     return (
       await c.query<ReferenceItem>(
-        `SELECT id,code,name FROM ${kind} ORDER BY name`,
+        `SELECT public_id id,code,name FROM ${kind} ORDER BY name`,
       )
     ).rows;
   }
@@ -51,13 +51,15 @@ export class SetupRepository {
         username: string;
         name: string;
         active: boolean;
-      }>("SELECT id,username,name,active FROM users ORDER BY username")
+      }>(
+        "SELECT public_id id,username,name,active FROM users ORDER BY username",
+      )
     ).rows;
   }
   async members(id: string, c: PoolClient): Promise<SetupMember[]> {
     return (
       await c.query<SetupMember>(
-        'SELECT u.id "userId",u.username,u.name,u.active,m.role_id "roleId" FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.project_id=$1 ORDER BY u.id',
+        'SELECT u.public_id "userId",u.username,u.name,u.active,m.role_id "roleId" FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.project_id=(SELECT id FROM projects WHERE public_id=$1) ORDER BY u.public_id',
         [id],
       )
     ).rows;
@@ -65,7 +67,7 @@ export class SetupRepository {
   async project(id: string, c: PoolClient): Promise<SetupProject | undefined> {
     const p = (
       await c.query<SetupProject>(
-        `SELECT p.id,p.code,p.name,p.description,p.accent,p.status,p.version,p.client_id "clientId",cl.name client,p.updated_at "updatedAt",u.name "updatedBy",p.first_transaction_at "firstTransactionAt",json_build_object('lot',s.lot,'expiry',s.expiry,'inspection',s.inspection) rules FROM projects p JOIN clients cl ON cl.id=p.client_id JOIN project_settings s ON s.project_id=p.id LEFT JOIN users u ON u.id=p.updated_by WHERE p.id=$1 FOR UPDATE OF p`,
+        `SELECT p.public_id id,p.code,p.name,p.description,p.accent,p.status,p.version,cl.public_id "clientId",cl.name client,p.updated_at "updatedAt",u.name "updatedBy",p.first_transaction_at "firstTransactionAt",json_build_object('lot',s.lot,'expiry',s.expiry,'inspection',s.inspection) rules FROM projects p JOIN clients cl ON cl.id=p.client_id JOIN project_settings s ON s.project_id=p.id LEFT JOIN users u ON u.id=p.updated_by WHERE p.public_id=$1 FOR UPDATE OF p`,
         [id],
       )
     ).rows[0];
@@ -83,7 +85,7 @@ export class SetupRepository {
         hasStock: boolean;
         hasOpenWork: boolean;
       }>(
-        'SELECT warehouse_id id,is_default "isDefault",has_stock "hasStock",has_open_work "hasOpenWork" FROM project_warehouses WHERE project_id=$1 ORDER BY warehouse_id',
+        'SELECT w.public_id id,pw.is_default "isDefault",pw.has_stock "hasStock",pw.has_open_work "hasOpenWork" FROM project_warehouses pw JOIN warehouses w ON w.id=pw.warehouse_id WHERE pw.project_id=(SELECT id FROM projects WHERE public_id=$1) ORDER BY w.public_id',
         [id],
       )
     ).rows;
@@ -91,7 +93,7 @@ export class SetupRepository {
   async history(id: string, c: PoolClient): Promise<SetupAudit[]> {
     return (
       await c.query<SetupAudit>(
-        'SELECT id::text,section,actor_name "actorName",created_at "createdAt",before_value "before",after_value "after" FROM project_audit WHERE project_id=$1 ORDER BY id DESC',
+        'SELECT id::text,section,actor_name "actorName",created_at "createdAt",before_value "before",after_value "after" FROM project_audit WHERE project_id=(SELECT id FROM projects WHERE public_id=$1) ORDER BY id DESC',
         [id],
       )
     ).rows;
@@ -99,29 +101,32 @@ export class SetupRepository {
   async list(c: PoolClient) {
     return (
       await c.query<SetupSummary>(
-        'SELECT p.id,p.code,p.name,p.description,p.accent,p.status,p.client_id "clientId",cl.name client,p.version,p.updated_at "updatedAt",(SELECT count(*)::integer FROM project_warehouses w WHERE w.project_id=p.id) "warehouseCount" FROM projects p JOIN clients cl ON cl.id=p.client_id ORDER BY p.name',
+        'SELECT p.public_id id,p.code,p.name,p.description,p.accent,p.status,cl.public_id "clientId",cl.name client,p.version,p.updated_at "updatedAt",(SELECT count(*)::integer FROM project_warehouses w WHERE w.project_id=p.id) "warehouseCount" FROM projects p JOIN clients cl ON cl.id=p.client_id ORDER BY p.name',
       )
     ).rows;
   }
   async create(
-    id: string,
     input: CreateProjectInput,
     actorId: string,
     c: PoolClient,
-  ) {
-    await c.query(
-      "INSERT INTO projects(id,code,name,client,client_id,description,accent,status,updated_by) SELECT $1,$2,$3,name,id,$5,$6,'draft',$7 FROM clients WHERE id=$4",
-      [
-        id,
-        input.code,
-        input.name,
-        input.clientId,
-        input.description,
-        input.accent,
-        actorId,
-      ],
-    );
-    await c.query("INSERT INTO project_settings(project_id) VALUES ($1)", [id]);
+  ): Promise<string> {
+    const created = (
+      await c.query<{ key: string; id: string }>(
+        "INSERT INTO projects(code,name,client,client_id,description,accent,status,updated_by) VALUES ($1,$2,(SELECT name FROM clients WHERE public_id=$3),(SELECT id FROM clients WHERE public_id=$3),$4,$5,'draft',(SELECT id FROM users WHERE public_id=$6)) RETURNING id key,public_id id",
+        [
+          input.code,
+          input.name,
+          input.clientId,
+          input.description,
+          input.accent,
+          actorId,
+        ],
+      )
+    ).rows[0];
+    await c.query("INSERT INTO project_settings(project_id) VALUES ($1)", [
+      created.key,
+    ]);
+    return created.id;
   }
   async general(
     id: string,
@@ -130,7 +135,7 @@ export class SetupRepository {
     c: PoolClient,
   ) {
     await c.query(
-      "UPDATE projects SET name=$2,description=$3,accent=$4,client_id=$5,client=(SELECT name FROM clients WHERE id=$5) WHERE id=$1",
+      "UPDATE projects SET name=$2,description=$3,accent=$4,client_id=(SELECT id FROM clients WHERE public_id=$5),client=(SELECT name FROM clients WHERE public_id=$5) WHERE public_id=$1",
       [id, input.name, input.description, input.accent, clientId],
     );
   }
@@ -141,22 +146,22 @@ export class SetupRepository {
     c: PoolClient,
   ) {
     await c.query(
-      "DELETE FROM project_warehouses WHERE project_id=$1 AND NOT (warehouse_id=ANY($2::text[]))",
+      "DELETE FROM project_warehouses WHERE project_id=(SELECT id FROM projects WHERE public_id=$1) AND warehouse_id NOT IN (SELECT id FROM warehouses WHERE public_id=ANY($2::text[]))",
       [id, ids],
     );
     await c.query(
-      "UPDATE project_warehouses SET is_default=false WHERE project_id=$1",
+      "UPDATE project_warehouses SET is_default=false WHERE project_id=(SELECT id FROM projects WHERE public_id=$1)",
       [id],
     );
     for (const warehouseId of ids)
       await c.query(
-        "INSERT INTO project_warehouses(project_id,warehouse_id,is_default) VALUES ($1,$2,$3) ON CONFLICT(project_id,warehouse_id) DO UPDATE SET is_default=excluded.is_default",
+        "INSERT INTO project_warehouses(project_id,warehouse_id,is_default) VALUES ((SELECT id FROM projects WHERE public_id=$1),(SELECT id FROM warehouses WHERE public_id=$2),$3) ON CONFLICT(project_id,warehouse_id) DO UPDATE SET is_default=excluded.is_default",
         [id, warehouseId, warehouseId === defaultId],
       );
   }
   async rules(id: string, rules: SetupRules, c: PoolClient) {
     await c.query(
-      "UPDATE project_settings SET lot=$2,expiry=$3,inspection=$4 WHERE project_id=$1",
+      "UPDATE project_settings SET lot=$2,expiry=$3,inspection=$4 WHERE project_id=(SELECT id FROM projects WHERE public_id=$1)",
       [id, rules.lot, rules.expiry, rules.inspection],
     );
   }
@@ -165,15 +170,21 @@ export class SetupRepository {
     members: MembersInput["members"],
     c: PoolClient,
   ) {
-    await c.query("DELETE FROM memberships WHERE project_id=$1", [id]);
+    await c.query(
+      "DELETE FROM memberships WHERE project_id=(SELECT id FROM projects WHERE public_id=$1)",
+      [id],
+    );
     for (const m of members)
       await c.query(
-        "INSERT INTO memberships(project_id,user_id,role_id) VALUES ($1,$2,$3)",
+        "INSERT INTO memberships(project_id,user_id,role_id) VALUES ((SELECT id FROM projects WHERE public_id=$1),(SELECT id FROM users WHERE public_id=$2),$3)",
         [id, m.userId, m.roleId],
       );
   }
   async status(id: string, status: ProjectStatus, c: PoolClient) {
-    await c.query("UPDATE projects SET status=$2 WHERE id=$1", [id, status]);
+    await c.query("UPDATE projects SET status=$2 WHERE public_id=$1", [
+      id,
+      status,
+    ]);
   }
   async audit(
     id: string,
@@ -186,11 +197,11 @@ export class SetupRepository {
   ) {
     if (bump)
       await c.query(
-        "UPDATE projects SET version=version+1,updated_at=now(),updated_by=$2 WHERE id=$1",
+        "UPDATE projects SET version=version+1,updated_at=now(),updated_by=(SELECT id FROM users WHERE public_id=$2) WHERE public_id=$1",
         [id, actor.id],
       );
     await c.query(
-      "INSERT INTO project_audit(project_id,actor_id,actor_name,section,before_value,after_value) VALUES ($1,$2,$3,$4,$5::jsonb,$6::jsonb)",
+      "INSERT INTO project_audit(project_id,actor_id,actor_name,section,before_value,after_value) VALUES ((SELECT id FROM projects WHERE public_id=$1),(SELECT id FROM users WHERE public_id=$2),$3,$4,$5::jsonb,$6::jsonb)",
       [
         id,
         actor.id,

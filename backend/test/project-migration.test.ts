@@ -28,11 +28,11 @@ test("upgrades an existing Module 1 schema once without changing accounts or mem
     expect(
       (await db.query("SELECT version FROM schema_migrations ORDER BY version"))
         .rows,
-    ).toEqual([{ version: 1 }, { version: 2 }]);
+    ).toEqual([{ version: 1 }, { version: 2 }, { version: 3 }]);
     expect(
       (
         await db.query(
-          "SELECT name,status,client_id FROM projects WHERE id='apo'",
+          "SELECT name,status,client_id FROM projects WHERE public_id='apo'",
         )
       ).rows[0],
     ).toMatchObject({
@@ -41,20 +41,23 @@ test("upgrades an existing Module 1 schema once without changing accounts or mem
       client_id: expect.any(String),
     });
     expect(
-      (await db.query("SELECT password_hash FROM users WHERE id='legacy-user'"))
-        .rows[0].password_hash,
+      (
+        await db.query(
+          "SELECT password_hash FROM users WHERE public_id='legacy-user'",
+        )
+      ).rows[0].password_hash,
     ).toBe("unchanged-test-hash");
     expect(
       (
         await db.query(
-          "SELECT role_id FROM memberships WHERE user_id='legacy-user' AND project_id='apo'",
+          "SELECT role_id FROM memberships WHERE user_id=(SELECT id FROM users WHERE public_id='legacy-user') AND project_id=(SELECT id FROM projects WHERE public_id='apo')",
         )
       ).rows[0].role_id,
     ).toBe("manager");
     expect(
       (
         await db.query(
-          "SELECT lot,expiry,inspection FROM project_settings WHERE project_id='apo'",
+          "SELECT lot,expiry,inspection FROM project_settings WHERE project_id=(SELECT id FROM projects WHERE public_id='apo')",
         )
       ).rows[0],
     ).toEqual({ lot: "item", expiry: "item", inspection: true });

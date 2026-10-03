@@ -254,11 +254,11 @@ describe("Project Setup API", () => {
     }).expect(200);
     const db = app.get(Database);
     await db.query(
-      "UPDATE projects SET first_transaction_at=now() WHERE id=$1",
+      "UPDATE projects SET first_transaction_at=now() WHERE public_id=$1",
       [id],
     );
     await db.query(
-      "UPDATE project_warehouses SET has_stock=true WHERE project_id=$1 AND warehouse_id=$2",
+      "UPDATE project_warehouses SET has_stock=true WHERE project_id=(SELECT id FROM projects WHERE public_id=$1) AND warehouse_id=(SELECT id FROM warehouses WHERE public_id=$2)",
       [id, warehouseA],
     );
     const v = w.body.project.version;
@@ -402,4 +402,24 @@ describe("Project Setup API", () => {
       expect(after.history).toEqual(newer.history);
     },
   );
+  test("unknown public membership references fail without silently dropping assignments", async () => {
+    const before = (await read("/api/admin/users")).body;
+    await write("post", "/api/admin/users", admin, {
+      username: "invalid.reference",
+      name: "Invalid",
+      password: "Temporary-password-123!",
+      isAdmin: false,
+      memberships: [{ projectId: "missing-project", roleId: "operator" }],
+    }).expect(400);
+    expect((await read("/api/admin/users")).body).toEqual(before);
+    const d = await create("MISSING-REFERENCE");
+    await write("patch", `/api/projects/${d.project.id}/setup/members`, admin, {
+      version: 1,
+      members: [{ userId: "missing-user", roleId: "manager" }],
+    }).expect(400);
+    const after = await detail(d.project.id);
+    expect(after.project.version).toBe(1);
+    expect(after.members).toEqual([]);
+    expect(after.history).toHaveLength(1);
+  });
 });

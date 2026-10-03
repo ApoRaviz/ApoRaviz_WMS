@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { randomUUID } from "node:crypto";
 import { Database } from "../../db";
 import { fail, databaseErrorCode } from "../../common/errors";
 import { SetupRepository } from "./setup.repository";
@@ -35,7 +34,7 @@ export class ReferenceService {
         const actor = await this.setup.actor(actorId, c);
         if (!actor?.active || !actor.is_admin || actor.must_change_password)
           fail(403, "Administrator access required");
-        return this.repo.create(kind, randomUUID(), input, c);
+        return this.repo.create(kind, input, c);
       });
     } catch (error) {
       if (databaseErrorCode(error) === "23505") fail(409, "รหัสนี้มีอยู่แล้ว");

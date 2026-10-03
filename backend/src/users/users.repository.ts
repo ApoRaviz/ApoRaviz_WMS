@@ -9,13 +9,16 @@ export class UsersRepository {
   constructor(@Inject(Database) private readonly db: Database) {}
   async find(id: string): Promise<UserRow | undefined> {
     return (
-      await this.db.query<UserRow>("SELECT * FROM users WHERE id=$1", [id])
+      await this.db.query<UserRow>(
+        "SELECT public_id id,username,name,password_hash,is_admin,active,must_change_password FROM users WHERE public_id=$1",
+        [id],
+      )
     ).rows[0];
   }
   async findByUsername(username: string): Promise<UserRow | undefined> {
     return (
       await this.db.query<UserRow>(
-        "SELECT * FROM users WHERE lower(username)=lower($1)",
+        "SELECT public_id id,username,name,password_hash,is_admin,active,must_change_password FROM users WHERE lower(username)=lower($1)",
         [username],
       )
     ).rows[0];
@@ -23,7 +26,7 @@ export class UsersRepository {
   async lock(id: string, client: PoolClient): Promise<UserRow | undefined> {
     return (
       await client.query<UserRow>(
-        "SELECT * FROM users WHERE id=$1 FOR UPDATE",
+        "SELECT public_id id,username,name,password_hash,is_admin,active,must_change_password FROM users WHERE public_id=$1 FOR UPDATE",
         [id],
       )
     ).rows[0];
@@ -31,13 +34,13 @@ export class UsersRepository {
   async listIds(): Promise<string[]> {
     return (
       await this.db.query<{ id: string }>(
-        "SELECT id FROM users ORDER BY username",
+        "SELECT public_id id FROM users ORDER BY username",
       )
     ).rows.map((row) => row.id);
   }
   async memberships(id: string, client?: PoolClient): Promise<Membership[]> {
     const sql =
-      'SELECT project_id "projectId",role_id "roleId" FROM memberships WHERE user_id=$1 ORDER BY project_id';
+      'SELECT p.public_id "projectId",m.role_id "roleId" FROM memberships m JOIN projects p ON p.id=m.project_id WHERE m.user_id=(SELECT id FROM users WHERE public_id=$1) ORDER BY p.public_id';
     return (
       client
         ? await client.query<Membership>(sql, [id])
@@ -45,17 +48,25 @@ export class UsersRepository {
     ).rows;
   }
   async create(
-    id: string,
     username: string,
     name: string,
     passwordHash: string,
     isAdmin: boolean,
     client: PoolClient,
-  ): Promise<void> {
-    await client.query(
-      "INSERT INTO users(id,username,name,password_hash,is_admin) VALUES ($1,$2,$3,$4,$5)",
-      [id, username, name, passwordHash, isAdmin],
+  ): Promise<string> {
+    return (
+      await client.query<{ id: string }>(
+        "INSERT INTO users(username,name,password_hash,is_admin) VALUES ($1,$2,$3,$4) RETURNING public_id id",
+        [username, name, passwordHash, isAdmin],
+      )
+    ).rows[0].id;
+  }
+  async projectsExist(ids: string[], client: PoolClient): Promise<boolean> {
+    const result = await client.query<{ count: number }>(
+      "SELECT count(*)::integer count FROM projects WHERE public_id=ANY($1::text[])",
+      [ids],
     );
+    return result.rows[0].count === ids.length;
   }
   async addMemberships(
     id: string,
@@ -64,7 +75,7 @@ export class UsersRepository {
   ): Promise<void> {
     for (const m of memberships)
       await client.query(
-        "INSERT INTO memberships(user_id,project_id,role_id) VALUES ($1,$2,$3)",
+        "INSERT INTO memberships(user_id,project_id,role_id) VALUES ((SELECT id FROM users WHERE public_id=$1),(SELECT id FROM projects WHERE public_id=$2),$3)",
         [id, m.projectId, m.roleId],
       );
   }
@@ -73,7 +84,10 @@ export class UsersRepository {
     memberships: Membership[],
     client: PoolClient,
   ): Promise<void> {
-    await client.query("DELETE FROM memberships WHERE user_id=$1", [id]);
+    await client.query(
+      "DELETE FROM memberships WHERE user_id=(SELECT id FROM users WHERE public_id=$1)",
+      [id],
+    );
     await this.addMemberships(id, memberships, client);
   }
   async lockAdministrators(client: PoolClient): Promise<void> {
@@ -94,7 +108,7 @@ export class UsersRepository {
     client: PoolClient,
   ): Promise<void> {
     await client.query(
-      "UPDATE users SET name=$1,active=$2,is_admin=$3 WHERE id=$4",
+      "UPDATE users SET name=$1,active=$2,is_admin=$3 WHERE public_id=$4",
       [input.name, input.active, input.isAdmin, id],
     );
   }
@@ -105,7 +119,7 @@ export class UsersRepository {
     client: PoolClient,
   ): Promise<void> {
     await client.query(
-      "UPDATE users SET password_hash=$1,must_change_password=$2 WHERE id=$3",
+      "UPDATE users SET password_hash=$1,must_change_password=$2 WHERE public_id=$3",
       [hash, mustChange, id],
     );
   }

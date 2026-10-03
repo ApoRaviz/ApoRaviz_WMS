@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { randomUUID } from "node:crypto";
 import { PoolClient } from "pg";
 import { Database } from "../../db";
 import { databaseErrorCode, fail } from "../../common/errors";
@@ -82,8 +81,7 @@ export class SetupService {
           )
         )
           fail(400, "เลือก Client ที่มีอยู่ในระบบ");
-        const id = randomUUID();
-        await this.repo.create(id, input, actorId, c);
+        const id = await this.repo.create(input, actorId, c);
         const p = (await this.repo.project(id, c))!;
         await this.repo.audit(id, actor, "created", null, p, c, false);
         return this.detailFor(actor, p, c);

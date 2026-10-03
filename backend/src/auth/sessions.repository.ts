@@ -8,7 +8,7 @@ export class SessionsRepository {
   async current(hash: string): Promise<UserRow | undefined> {
     return (
       await this.db.query<UserRow>(
-        `SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now()`,
+        `SELECT u.public_id id,u.username,u.name,u.password_hash,u.is_admin,u.active,u.must_change_password FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now()`,
         [hash],
       )
     ).rows[0];
@@ -19,14 +19,14 @@ export class SessionsRepository {
   ): Promise<UserRow | undefined> {
     return (
       await client.query<UserRow>(
-        `SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() FOR UPDATE OF u,s`,
+        `SELECT u.public_id id,u.username,u.name,u.password_hash,u.is_admin,u.active,u.must_change_password FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() FOR UPDATE OF u,s`,
         [hash],
       )
     ).rows[0];
   }
   async issue(hash: string, userId: string, client: PoolClient): Promise<void> {
     await client.query(
-      `INSERT INTO sessions(token_hash,user_id,expires_at) VALUES ($1,$2,now()+interval '8 hours')`,
+      `INSERT INTO sessions(token_hash,user_id,expires_at) VALUES ($1,(SELECT id FROM users WHERE public_id=$2),now()+interval '8 hours')`,
       [hash, userId],
     );
   }
@@ -34,6 +34,9 @@ export class SessionsRepository {
     await this.db.query("DELETE FROM sessions WHERE token_hash=$1", [hash]);
   }
   async revokeUser(id: string, client: PoolClient): Promise<void> {
-    await client.query("DELETE FROM sessions WHERE user_id=$1", [id]);
+    await client.query(
+      "DELETE FROM sessions WHERE user_id=(SELECT id FROM users WHERE public_id=$1)",
+      [id],
+    );
   }
 }
